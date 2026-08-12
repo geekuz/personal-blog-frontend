@@ -1,0 +1,74 @@
+/* Tailwind v4: one import pulls in base resets, components, and all utilities. */
+@import 'tailwindcss';
+
+/* The typography plugin gives us the `prose` classes we'll use to style
+   rendered Markdown post bodies (headings, lists, code, blockquotes, etc.). */
+@plugin '@tailwindcss/typography';
+
+/* Enable class-based dark mode: styles under `dark:` apply when a parent
+   element has the `dark` class. We'll toggle that class in Phase 6. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens. Declaring them in @theme makes them available BOTH as CSS
+   variables (var(--color-accent)) and as Tailwind utilities (bg-accent,
+   text-accent, etc.). One source of truth for the whole site's look. */
+@theme {
+  --color-bg: #ffffff;
+  --color-surface: #f8f7fb;
+  --color-text: #2c2735;
+  --color-heading: #08060d;
+  --color-muted: #6b6375;
+  --color-border: #e5e4e7;
+  --color-accent: #aa3bff;
+  --color-accent-soft: rgba(170, 59, 255, 0.1);
+
+  --font-sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
+}
+
+/* Dark-mode token overrides. Same variable names, different values, so every
+   utility built on these tokens flips automatically when `.dark` is set. */
+.dark {
+  --color-bg: #16171d;
+  --color-surface: #1f2028;
+  --color-text: #c8c5cf;
+  --color-heading: #f3f4f6;
+  --color-muted: #9ca3af;
+  --color-border: #2e303a;
+  --color-accent: #c084fc;
+  --color-accent-soft: rgba(192, 132, 252, 0.15);
+}
+
+/* A tiny bit of base styling that's easier as plain CSS than utilities. */
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+a,
+input {
+  outline-color: var(--color-accent);
+}
+
+:focus-visible {
+  outline-width: 2px;
+  outline-style: solid;
+  outline-offset: 3px;
+}
+
+/* Accessibility: some people get motion sickness from animation. If the OS asks
+   to reduce motion, we make transitions effectively instant site-wide. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

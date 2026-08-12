@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta
+      name="description"
+      content="Otabek's blog — learning React by building it."
+    />
+    <title>otabek.dev — Writing</title>
+    <!--
+      Anti-flash script. This runs BEFORE React and before the page paints, so
+      it applies the saved (or system) theme immediately. Without it, the page
+      would briefly flash light before React's effect adds the `dark` class.
+      It reads the same localStorage key/format that useLocalStorage writes.
+    -->
+    <script>
+      try {
+        var t = JSON.parse(localStorage.getItem('theme'))
+        var dark =
+          t === 'dark' ||
+          (t == null &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches)
+        if (dark) document.documentElement.classList.add('dark')
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
