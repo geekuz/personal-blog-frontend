@@ -135,6 +135,8 @@ Minimum browser coverage with Playwright:
 - Unknown routes and unknown slugs render the correct 404 state
 - Theme survives reload
 - Mobile navigation/layout remains usable
+- Out-of-range pages recover without leaving the visitor on an empty invalid page
+- Offline and backend-error responses expose a working retry action
 
 Add scripts similar to:
 
@@ -157,6 +159,9 @@ Add scripts similar to:
 - Consider prerendering or an SSR-capable architecture if search indexing and
   social previews are priorities; a purely client-rendered SPA is limited here.
 - Add Article structured data to post pages.
+- Ensure social metadata is present in the initial HTML through prerendering or
+  SSR before treating social previews as complete; runtime-only meta changes are
+  not consistently read by link crawlers.
 
 ### UX and accessibility
 
@@ -167,6 +172,10 @@ Add scripts similar to:
 - Check color contrast in both themes.
 - Add previous/next post links and an accessible table of contents for long posts.
 - Use real icon components instead of emoji if consistent rendering matters.
+- Preserve the previous post list while a filter request is loading and indicate
+  background refresh without replacing the full page.
+- Add one “Clear filters” action when search or tag filtering is active.
+- Treat unknown tags and pages beyond the final page as recoverable URL states.
 
 ### Performance
 
@@ -187,6 +196,62 @@ Prioritize features that strengthen the blog itself:
 5. Image support with captions/alt text
 6. Syntax highlighting with a lightweight, safe renderer
 7. Related and previous/next posts
+
+Post rendering should also include:
+
+- A copy button with accessible success feedback on fenced code blocks.
+- Language-aware syntax highlighting that does not enable unsafe raw HTML.
+- A generated table of contents for posts with multiple headings.
+- Stable heading IDs so table-of-contents and shared section links work.
+- Responsive, lazy-loaded images with explicit dimensions, required alt text,
+  and optional captions.
+
+### Admin authoring interface (after backend authentication)
+
+Keep authoring routes under a separately lazy-loaded `/admin` area. Include:
+
+- Login/logout integrated with the backend's chosen authentication mechanism.
+- Draft and published post dashboard with search and status filters.
+- Markdown editor with side-by-side or toggleable preview.
+- Create, edit, publish, unpublish, and soft-delete flows.
+- Slug validation and conflict messages.
+- Tag creation and selection.
+- Unsaved-change protection before navigation or tab closure.
+- Optimistic-lock conflict handling so a stale editor cannot overwrite changes.
+
+Do not persist access tokens in `localStorage`. Final authentication storage and
+CSRF handling must follow the backend security design.
+
+### CI, monitoring, and operational readiness
+
+Add a GitHub Actions workflow that runs on pull requests and pushes to `main`:
+
+```text
+npm ci
+npm run lint
+npm test
+npm run build
+npm run test:e2e
+```
+
+Use dependency caching, but always install from `package-lock.json`. Add bundle
+size monitoring and deployment preview checks. After deployment, configure:
+
+- Frontend error reporting with source maps stored securely.
+- A basic uptime check for the site and backend health endpoint.
+- Privacy-conscious analytics only after documenting what is collected.
+- Alerts that identify the environment and release/commit involved.
+
+### Content and branding readiness
+
+Before public launch:
+
+- Replace learning-demo copy with final author biography and positioning.
+- Add verified contact and social links.
+- Create a consistent logo, favicon set, and social preview image.
+- Publish enough substantial posts that search, tags, related-post links, and
+  pagination represent real content rather than fixtures.
+- Document editorial rules for titles, excerpts, headings, alt text, and tags.
 
 Comments, analytics, reactions, subscriptions, and view counts should be added
 only after their privacy, moderation, and operational costs are decided.
@@ -223,18 +288,35 @@ only after their privacy, moderation, and operational costs are decided.
 - Real author/about content replaces learning placeholders where appropriate.
 - Performance budgets are documented and met.
 
+### Milestone 5 — rich reading experience
+
+- Code blocks support syntax highlighting and accessible copy actions.
+- Long posts have stable heading links and an accessible table of contents.
+- Previous/next and related-post navigation use backend-provided relationships.
+- Post images are responsive, lazy-loaded, dimensioned, and accessible.
+
+### Milestone 6 — authoring and operations
+
+- The protected `/admin` bundle supports the complete draft/publish workflow.
+- Stale edits and unsaved navigation are handled safely.
+- GitHub Actions gates merges on lint, unit tests, build, and browser tests.
+- Error monitoring, uptime checks, and release identification are operational.
+
 ## 8. Definition of done for the integrated blog
 
 - A visitor can list, search, filter, paginate, and open published posts.
 - Draft content is never visible publicly.
 - Reloading any frontend route does not cause a host-level 404.
 - Loading, empty, offline, server-error, and post-not-found states are distinct.
+- Unknown filters and invalid pagination URLs recover predictably.
 - Content is keyboard accessible and usable on common mobile widths.
 - No secrets or environment-specific URLs are committed.
 - Lint, unit tests, backend integration tests, browser tests, and production builds
   pass in CI.
 - Database schema changes are reproducible through migrations.
 - Setup and deployment can be completed from repository documentation alone.
+- Code examples, heading navigation, and content images meet the documented
+  accessibility behavior.
 
 ## 9. Working rule for future changes
 

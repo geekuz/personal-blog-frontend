@@ -119,6 +119,24 @@ Returns one published post.
 Return `404` when the slug does not exist or belongs to a draft. Public callers
 must not be able to infer that a draft exists.
 
+The post-detail DTO may later add lightweight navigation relationships without
+embedding complete posts:
+
+```json
+{
+  "previousPost": { "slug": "older-post", "title": "Older post" },
+  "nextPost": { "slug": "newer-post", "title": "Newer post" },
+  "relatedPosts": [
+    { "slug": "related-post", "title": "Related post", "summary": "..." }
+  ]
+}
+```
+
+If implemented, derive previous/next links from the same deterministic public
+ordering as the post list. Related-post selection must include published posts
+only and should be deterministic (for example shared tags, then publication
+date). Keep the fields absent until their behavior is implemented and tested.
+
 ### `GET /tags`
 
 Returns tags used by at least one published post.
@@ -191,6 +209,13 @@ Admin write DTO example:
 
 Use optimistic locking (for example a JPA `@Version` field) or an equivalent
 mechanism to prevent one edit from silently overwriting another.
+
+If image uploads are selected, add a dedicated protected media endpoint rather
+than accepting arbitrary server filesystem paths. Validate authenticated author,
+MIME type, decoded file type, size, and dimensions; generate collision-resistant
+object keys; and return a public URL plus width, height, alt text, and optional
+caption metadata. Prefer object storage with restricted write access. If uploads
+are out of scope, allow only explicitly validated HTTPS image URLs in content.
 
 ## 7. Database and migration requirements
 
@@ -271,5 +296,7 @@ The backend is ready for frontend integration when:
 - Whether post images are external URLs or uploaded files
 - Whether scheduled publishing is required
 - Whether comments, reactions, view counts, or subscribers are in scope
+- Whether previous/next and related-post relationships are computed by the
+  backend or derived from paginated frontend data
 
 These features should not delay the public read-only MVP.
