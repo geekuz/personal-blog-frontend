@@ -15,8 +15,46 @@ The frontend is a working React/Vite single-page blog. It currently provides:
 - Route-level lazy loading
 
 At the time this guide was written, both `npm run lint` and `npm run build`
-passed. There are no automated tests. The workspace's `.git` directory is empty,
-so Git history and progress cannot currently be inspected.
+passed. Git is initialized and its history can be inspected.
+
+### Testing progress — August 12, 2026
+
+The first automated-testing milestone is complete. The project now includes:
+
+- Vitest with jsdom for unit and component tests
+- React Testing Library and `@testing-library/user-event`
+- MSW for frontend API response mocking
+- Playwright with Chromium for browser tests
+- Test-mode backend configuration in `.env.test`
+
+Current automated coverage includes:
+
+- `readingTime` and `formatDate`
+- Post card metadata, tags, and detail links
+- Search input and tag selection behavior
+- Home loading, empty, API-error, and retry states
+- Successful post-detail rendering and post 404 behavior
+- Theme persistence and document theme application
+- Search/tag URL updates in a browser
+- Direct post routes and unknown-route 404 behavior
+- Theme persistence across reloads and basic mobile navigation usability
+
+Verified results on August 12, 2026:
+
+```text
+npm test          11 tests passed across 4 files
+npm run test:e2e   3 Playwright tests passed
+npm run lint       passed
+npm run build      passed
+```
+
+The build still emits the existing `buffer` browser-compatibility warning from
+the local Markdown/frontmatter pipeline. This does not fail tests or the build
+and should disappear after the old content pipeline is removed.
+
+Remaining test work includes backend-connected browser coverage, invalid and
+out-of-range pagination recovery, explicit offline behavior, background-refresh
+behavior, broader accessibility checks, and running all suites in CI.
 
 ## 2. Architecture map
 
@@ -116,7 +154,9 @@ database.
 
 ## 5. Testing plan
 
-Add Vitest, React Testing Library, `@testing-library/user-event`, and MSW.
+Vitest, React Testing Library, `@testing-library/user-event`, MSW, and Playwright
+are now installed and configured. Extend the existing suites as features are
+added instead of creating a separate testing setup.
 
 Minimum unit/component coverage:
 
@@ -138,7 +178,7 @@ Minimum browser coverage with Playwright:
 - Out-of-range pages recover without leaving the visitor on an empty invalid page
 - Offline and backend-error responses expose a working retry action
 
-Add scripts similar to:
+The following scripts are available:
 
 ```json
 {
@@ -263,7 +303,7 @@ only after their privacy, moderation, and operational costs are decided.
 - Git repository is healthy.
 - `.env.example` and API client exist.
 - API calls have loading, empty, error, and retry states.
-- MSW-backed component tests pass.
+- MSW-backed component tests pass (11 Vitest tests as of August 12, 2026).
 
 ### Milestone 2 — backend integration
 

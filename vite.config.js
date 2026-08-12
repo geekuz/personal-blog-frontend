@@ -8,4 +8,10 @@ export default defineConfig({
   //  - react(): understands JSX and enables Fast Refresh (instant updates on save)
   //  - tailwindcss(): scans our files for class names and generates only the CSS we use
   plugins: [react(), tailwindcss()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    css: true,
+    include: ['src/**/*.test.{js,jsx}'],
+  },
 })
