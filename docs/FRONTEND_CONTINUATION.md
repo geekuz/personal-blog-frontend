@@ -5,7 +5,7 @@
 The frontend is a working React/Vite single-page blog. It currently provides:
 
 - Home, About, post detail, and 404 routes
-- Three Markdown posts loaded from `src/posts/*.md`
+- Published Markdown posts loaded from the Spring Boot API
 - Search by title and summary
 - Tag filtering
 - Markdown/GFM rendering
@@ -48,9 +48,14 @@ npm run lint       passed
 npm run build      passed
 ```
 
-The build still emits the existing `buffer` browser-compatibility warning from
-the local Markdown/frontmatter pipeline. This does not fail tests or the build
-and should disappear after the old content pipeline is removed.
+### Backend migration completed — August 13, 2026
+
+- The Spring Boot/PostgreSQL API is now the required content source.
+- Flyway V3 preserves the three original frontend posts in PostgreSQL.
+- The local Markdown/frontmatter fallback and `front-matter` dependency were removed.
+- The production build no longer emits the old `buffer` compatibility warning.
+- `npm run test:e2e:backend` covers the live API, filters, details, 404s, and
+  out-of-range pagination recovery.
 
 Remaining test work includes backend-connected browser coverage, invalid and
 out-of-range pagination recovery, explicit offline behavior, background-refresh
@@ -64,14 +69,13 @@ src/
   components/layout/   Header, footer, shared route layout
   components/ui/       Theme toggle
   hooks/                Local storage and theme behavior
-  lib/posts.js          Current build-time file discovery/client parsing
+  api/posts.js          Spring Boot API client
   pages/                Route-level page components
   posts/                Current Markdown content source
 ```
 
-`src/lib/posts.js` is the migration boundary. It currently exposes `posts`,
-`getPostBySlug`, and `getAllTags`. Backend integration should replace this data
-source while keeping the page and presentational component responsibilities clear.
+`src/api/posts.js` is the content boundary. Visual components do not issue raw
+HTTP requests directly.
 
 ## 3. Immediate repository cleanup
 

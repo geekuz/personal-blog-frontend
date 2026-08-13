@@ -56,6 +56,18 @@ function Home() {
     ])
       .then(([postsResponse, tagsResponse]) => {
         if (controller.signal.aborted) return
+
+        if (page > 0 && page >= postsResponse.totalPages) {
+          setSearchParams((current) => {
+            const next = new URLSearchParams(current)
+            const lastPage = Math.max(0, postsResponse.totalPages - 1)
+            if (lastPage > 0) next.set('page', String(lastPage))
+            else next.delete('page')
+            return next
+          }, { replace: true })
+          return
+        }
+
         setResource({
           key: requestKey,
           result: postsResponse,
@@ -70,7 +82,7 @@ function Home() {
       })
 
     return () => controller.abort()
-  }, [query, activeTag, page, requestVersion, requestKey])
+  }, [query, activeTag, page, requestVersion, requestKey, setSearchParams])
 
   function selectTag(tag) {
     setSearchParams((current) => {

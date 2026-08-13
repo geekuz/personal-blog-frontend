@@ -1,7 +1,7 @@
 # Personal Blog
 
-A small, fast personal blog built with **React + Vite** while learning React. Posts
-are plain Markdown files; styling is Tailwind CSS.
+A small, fast personal blog built with **React + Vite** while learning React.
+Published posts and tags come from the Spring Boot API; styling is Tailwind CSS.
 
 ## Tech
 
@@ -9,13 +9,12 @@ are plain Markdown files; styling is Tailwind CSS.
 - **React Router** — client-side routing (`/`, `/about`, `/blog/:slug`, 404)
 - **Tailwind CSS v4** + `@tailwindcss/typography` — styling and post body `prose`
 - **react-markdown** + **remark-gfm** — render Markdown post bodies
-- **front-matter** — parse YAML frontmatter from posts
 
 ## Run locally
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm run dev      # http://localhost:5173; requires the backend on port 8080
 ```
 
 Other scripts:
@@ -28,8 +27,7 @@ npm run lint     # eslint
 
 ## Backend connection
 
-The blog continues to use local Markdown when no backend URL is configured. To
-connect the Spring Boot API, copy `.env.example` to `.env.local` and set:
+Copy `.env.example` to `.env.local` and configure the required Spring Boot API:
 
 ```text
 VITE_API_BASE_URL=http://localhost:8080/api/v1
@@ -39,24 +37,8 @@ The frontend expects the API contract documented in
 [`docs/BACKEND_HANDOFF.md`](docs/BACKEND_HANDOFF.md). Search, tags, pagination,
 post detail requests, loading states, retries, and API errors are already wired.
 
-## Writing a post
-
-Add a Markdown file to `src/posts/`. The filename becomes the URL slug
-(`my-post.md` → `/blog/my-post`). Include frontmatter at the top:
-
-```markdown
----
-title: My Post Title
-date: 2026-06-23
-summary: One-line summary shown on the home feed.
-tags: [react, learning]
----
-
-Your Markdown content here. Tables, lists, code blocks, and other
-GitHub-flavored Markdown all work.
-```
-
-The post appears on the home page automatically — no code changes needed.
+Posts are authored and stored as Markdown source by the backend. The frontend
+renders the `content` field using GitHub-flavored Markdown.
 
 ## Project structure
 
@@ -68,8 +50,8 @@ src/
     ui/       ThemeToggle
   pages/      Home, About, PostPage, NotFound
   hooks/      useLocalStorage, useTheme
-  lib/        posts (loader), readingTime, formatDate
-  posts/      *.md content
+  api/        Spring Boot API client
+  lib/        readingTime and date formatting utilities
   index.css   Tailwind entry + design tokens
 ```
 

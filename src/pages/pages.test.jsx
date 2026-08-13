@@ -62,6 +62,25 @@ describe('Home API states', () => {
     await userEvent.click(retry)
     expect(await screen.findByRole('link', { name: 'API post' })).toBeInTheDocument()
   })
+
+  it('recovers from a page beyond the final page', async () => {
+    const requestedPages = []
+    server.use(
+      http.get('http://localhost:8080/api/v1/posts', ({ request }) => {
+        const page = Number(new URL(request.url).searchParams.get('page'))
+        requestedPages.push(page)
+        return HttpResponse.json(page === 0
+          ? { items: [post], page: 0, size: 6, totalItems: 1, totalPages: 1, hasNext: false }
+          : { items: [], page, size: 6, totalItems: 1, totalPages: 1, hasNext: false })
+      }),
+      http.get('http://localhost:8080/api/v1/tags', () => HttpResponse.json({ items: [] })),
+    )
+
+    renderRoute(<Home />, '/?page=99')
+
+    expect(await screen.findByRole('link', { name: 'API post' })).toBeInTheDocument()
+    expect(requestedPages).toEqual([99, 0])
+  })
 })
 
 describe('PostPage API states', () => {
