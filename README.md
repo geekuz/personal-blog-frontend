@@ -33,6 +33,10 @@ Copy `.env.example` to `.env.local` and configure the required Spring Boot API:
 VITE_API_BASE_URL=http://localhost:8080/api/v1
 ```
 
+The account client sends secure session credentials to this API. When the
+frontend and API are hosted on different sites, the backend must use a secure
+`SameSite=None` session cookie and credential-enabled CORS.
+
 The frontend expects the API contract documented in
 [`docs/BACKEND_HANDOFF.md`](docs/BACKEND_HANDOFF.md). Search, tags, pagination,
 post detail requests, loading states, retries, and API errors are already wired.

@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import ThemeToggle from '../ui/ThemeToggle'
+import { useAuth } from '../../auth/useAuth'
 
 // NavLink is like a smart <a>: it navigates without reloading the page, AND it
 // knows when its `to` matches the current URL so we can style the active link.
@@ -11,6 +12,7 @@ function navClass({ isActive }) {
 }
 
 function Header() {
+  const { user, isLoading } = useAuth()
   return (
     <header className="border-b border-border">
       <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
@@ -28,6 +30,11 @@ function Header() {
           <NavLink to="/about" className={navClass}>
             About
           </NavLink>
+          {!isLoading && (
+            <NavLink to={user ? '/account' : '/login'} className={navClass}>
+              {user ? 'Account' : 'Log in'}
+            </NavLink>
+          )}
           <ThemeToggle />
         </nav>
       </div>
