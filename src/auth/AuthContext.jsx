@@ -5,6 +5,8 @@ import {
   loginAccount,
   logoutAccount,
   registerAccount,
+  resendVerificationEmail,
+  verifyEmailToken,
 } from '../api/auth'
 import { AuthContext } from './auth-context'
 
@@ -51,8 +53,21 @@ export function AuthProvider({ children }) {
     setUser(null)
   }, [ensureCsrf])
 
+  const verifyEmail = useCallback(async (token) => {
+    const verifiedUser = await verifyEmailToken(token, await ensureCsrf())
+    const session = await getSession()
+    setUser(session.authenticated ? session.user : null)
+    return verifiedUser
+  }, [ensureCsrf])
+
+  const resendVerification = useCallback(async () => {
+    await resendVerificationEmail(await ensureCsrf())
+  }, [ensureCsrf])
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{
+      user, isLoading, login, register, logout, verifyEmail, resendVerification,
+    }}>
       {children}
     </AuthContext.Provider>
   )

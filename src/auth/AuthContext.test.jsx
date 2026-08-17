@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event'
 import { AuthProvider } from './AuthContext'
 import Login from '../pages/Login'
 import Account from '../pages/Account'
+import VerifyEmail from '../pages/VerifyEmail'
 import { server } from '../test/server'
 
 const base = 'http://localhost:8080/api/v1'
@@ -31,6 +32,11 @@ function authHandlers() {
       authenticated = false
       return new HttpResponse(null, { status: 204 })
     }),
+    http.post(`${base}/auth/verify-email`, async ({ request }) => {
+      const body = await request.json()
+      expect(body.token).toBe('valid-token')
+      return HttpResponse.json({ ...user, emailVerified: true })
+    }),
   ]
 }
 
@@ -53,5 +59,19 @@ describe('account authentication', () => {
     await user.click(screen.getByRole('button', { name: 'Log in' }))
     expect(await screen.findByRole('heading', { name: 'Your account' })).toBeInTheDocument()
     expect(screen.getByText('Reader One')).toBeInTheDocument()
+  })
+
+  it('verifies an email link', async () => {
+    server.use(...authHandlers())
+    render(
+      <MemoryRouter initialEntries={['/verify-email?token=valid-token']}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/verify-email" element={<VerifyEmail />} />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>,
+    )
+    expect(await screen.findByRole('heading', { name: 'Email verified' })).toBeInTheDocument()
   })
 })

@@ -13,6 +13,7 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const Account = lazy(() => import('./pages/Account'))
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
 
 // Because the pages are now lazy, React needs a <Suspense> boundary to show a
 // fallback while a chunk downloads. We put that boundary inside Layout (around
@@ -27,6 +28,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/account" element={<Account />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

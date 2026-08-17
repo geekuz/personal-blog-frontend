@@ -62,6 +62,19 @@ export async function logoutAccount(csrf) {
   if (!response.ok) await responseJson(response)
 }
 
+export async function verifyEmailToken(token, csrf) {
+  return mutate('/auth/verify-email', { token }, csrf)
+}
+
+export async function resendVerificationEmail(csrf) {
+  const response = await fetch(apiUrl('/auth/verification/resend'), {
+    method: 'POST',
+    credentials: 'include',
+    headers: { [csrf.headerName]: csrf.token },
+  })
+  if (!response.ok) await responseJson(response)
+}
+
 async function mutate(path, details, csrf) {
   const response = await fetch(apiUrl(path), {
     method: 'POST',
