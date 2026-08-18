@@ -21,16 +21,24 @@ function authHandlers() {
     roles: ['USER'],
   }
   return [
-    http.get(`${base}/auth/csrf`, () => HttpResponse.json({ headerName: 'X-CSRF-TOKEN', token: 'test-token' })),
+    http.get(`${base}/auth/csrf`, () => HttpResponse.json({
+      headerName: 'X-CSRF-TOKEN',
+      token: authenticated ? 'authenticated-token' : 'anonymous-token',
+    })),
     http.get(`${base}/auth/me`, () => HttpResponse.json({ authenticated, user: authenticated ? user : null })),
     http.post(`${base}/auth/login`, async ({ request }) => {
-      expect(request.headers.get('x-csrf-token')).toBe('test-token')
+      expect(request.headers.get('x-csrf-token')).toBe('anonymous-token')
       authenticated = true
       return HttpResponse.json(user)
     }),
-    http.post(`${base}/auth/logout`, () => {
+    http.post(`${base}/auth/logout`, ({ request }) => {
+      expect(request.headers.get('x-csrf-token')).toBe('authenticated-token')
       authenticated = false
       return new HttpResponse(null, { status: 204 })
+    }),
+    http.post(`${base}/auth/verification/resend`, ({ request }) => {
+      expect(request.headers.get('x-csrf-token')).toBe('authenticated-token')
+      return new HttpResponse(null, { status: 202 })
     }),
     http.post(`${base}/auth/verify-email`, async ({ request }) => {
       const body = await request.json()
@@ -59,6 +67,10 @@ describe('account authentication', () => {
     await user.click(screen.getByRole('button', { name: 'Log in' }))
     expect(await screen.findByRole('heading', { name: 'Your account' })).toBeInTheDocument()
     expect(screen.getByText('Reader One')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Send verification email' }))
+    expect(await screen.findByRole('status')).toHaveTextContent('Verification email sent')
+    await user.click(screen.getByRole('button', { name: 'Log out' }))
+    expect(await screen.findByRole('heading', { name: 'Log in' })).toBeInTheDocument()
   })
 
   it('verifies an email link', async () => {

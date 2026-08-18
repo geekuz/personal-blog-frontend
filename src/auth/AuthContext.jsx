@@ -38,6 +38,9 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (details) => {
     const authenticatedUser = await loginAccount(details, await ensureCsrf())
+    // Spring Security rotates the session during login, so the anonymous
+    // session's CSRF token must not be reused for authenticated actions.
+    csrf.current = null
     setUser(authenticatedUser)
     return authenticatedUser
   }, [ensureCsrf])
