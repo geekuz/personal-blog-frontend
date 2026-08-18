@@ -75,6 +75,18 @@ export async function resendVerificationEmail(csrf) {
   if (!response.ok) await responseJson(response)
 }
 
+export async function requestPasswordReset(email, csrf) {
+  return mutate('/auth/password/forgot', { email }, csrf)
+}
+
+export async function resetPassword(details, csrf) {
+  return mutate('/auth/password/reset', details, csrf)
+}
+
+export async function changePassword(details, csrf) {
+  return mutate('/auth/password/change', details, csrf)
+}
+
 async function mutate(path, details, csrf) {
   const response = await fetch(apiUrl(path), {
     method: 'POST',

@@ -30,6 +30,22 @@ const posts = [
 test.beforeEach(async ({ page }) => {
   await page.route('http://localhost:8080/api/v1/**', async (route) => {
     const url = new URL(route.request().url())
+    if (url.pathname === '/api/v1/auth/csrf') {
+      await route.fulfill({ json: { headerName: 'X-CSRF-TOKEN', token: 'browser-test-token' } })
+      return
+    }
+    if (url.pathname === '/api/v1/auth/me') {
+      await route.fulfill({ json: { authenticated: false, user: null } })
+      return
+    }
+    if (url.pathname === '/api/v1/auth/password/forgot') {
+      await route.fulfill({ status: 202, json: { message: 'If an account exists for that email, a password reset link has been sent.' } })
+      return
+    }
+    if (url.pathname === '/api/v1/auth/password/reset') {
+      await route.fulfill({ status: 204, body: '' })
+      return
+    }
     if (url.pathname === '/api/v1/tags') {
       await route.fulfill({ json: { items: [...new Set(posts.flatMap((post) => post.tags))].map((slug) => ({ name: slug, slug, postCount: 1 })) } })
       return
@@ -79,4 +95,18 @@ test('theme survives reload and mobile layout remains usable', async ({ page }) 
   await page.reload()
   await expect(page.locator('html')).toHaveClass(/dark/)
   await expect(page.getByRole('navigation')).toBeVisible()
+})
+
+test('password recovery routes work through the browser', async ({ page }) => {
+  await page.goto('/forgot-password')
+  await page.getByLabel('Email').fill('reader@example.com')
+  await page.getByRole('button', { name: 'Send reset link' }).click()
+  await expect(page.getByRole('status')).toContainText('If an account exists')
+
+  await page.goto('/reset-password?token=browser-reset-token')
+  await page.getByLabel('New password', { exact: true }).fill('a-new-secure-password')
+  await page.getByLabel('Confirm new password').fill('a-new-secure-password')
+  await page.getByRole('button', { name: 'Reset password' }).click()
+  await expect(page).toHaveURL(/\/login$/)
+  await expect(page.getByRole('status')).toContainText('All existing sessions were signed out')
 })

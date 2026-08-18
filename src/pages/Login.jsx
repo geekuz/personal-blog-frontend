@@ -5,7 +5,7 @@ import { useDocumentMeta } from '../hooks/useDocumentMeta'
 
 function Login() {
   useDocumentMeta({ title: 'Log in — otabek.dev' })
-  const { user, isLoading, login } = useAuth()
+  const { user, isLoading, authNotice, login } = useAuth()
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
@@ -32,6 +32,7 @@ function Login() {
     <section className="mx-auto max-w-md">
       <h1 className="text-3xl font-bold text-heading">Log in</h1>
       <p className="mt-2 text-muted">Join the conversation and manage your subscription.</p>
+      {(location.state?.message || authNotice) && <p role="status" className="mt-4 rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">{location.state?.message || authNotice}</p>}
       <form onSubmit={submit} className="mt-8 space-y-5">
         <Field label="Email" name="email" type="email" autoComplete="email" />
         <Field label="Password" name="password" type="password" autoComplete="current-password" />
@@ -40,6 +41,7 @@ function Login() {
           {isSubmitting ? 'Logging in…' : 'Log in'}
         </button>
       </form>
+      <p className="mt-4 text-right text-sm"><Link to="/forgot-password" className="text-accent hover:underline">Forgot your password?</Link></p>
       <p className="mt-6 text-sm text-muted">No account yet? <Link to="/register" className="text-accent hover:underline">Create one</Link>.</p>
     </section>
   )
