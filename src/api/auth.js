@@ -87,6 +87,27 @@ export async function changePassword(details, csrf) {
   return mutate('/auth/password/change', details, csrf)
 }
 
+export async function getNewsletterSubscription() {
+  const response = await fetch(apiUrl('/newsletter/subscription'), {
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  })
+  return responseJson(response)
+}
+
+export async function subscribeToNewsletter(csrf) {
+  return mutate('/newsletter/subscription', null, csrf)
+}
+
+export async function unsubscribeFromNewsletter(csrf) {
+  const response = await fetch(apiUrl('/newsletter/subscription'), {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: { [csrf.headerName]: csrf.token },
+  })
+  if (!response.ok) await responseJson(response)
+}
+
 async function mutate(path, details, csrf) {
   const response = await fetch(apiUrl(path), {
     method: 'POST',
@@ -96,7 +117,7 @@ async function mutate(path, details, csrf) {
       'Content-Type': 'application/json',
       [csrf.headerName]: csrf.token,
     },
-    body: JSON.stringify(details),
+    ...(details === null ? {} : { body: JSON.stringify(details) }),
   })
   return responseJson(response)
 }

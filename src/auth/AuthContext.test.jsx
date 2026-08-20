@@ -13,13 +13,13 @@ import { server } from '../test/server'
 
 const base = 'http://localhost:8080/api/v1'
 
-function authHandlers() {
+function authHandlers({ emailVerified = false } = {}) {
   let authenticated = false
   const user = {
     id: '10000000-0000-0000-0000-000000000001',
     email: 'reader@example.com',
     displayName: 'Reader One',
-    emailVerified: false,
+    emailVerified,
     roles: ['USER'],
   }
   return [
@@ -61,6 +61,15 @@ function authHandlers() {
       expect(request.headers.get('x-csrf-token')).toBe('authenticated-token')
       expect(await request.json()).toEqual({ currentPassword: 'a-secure-password', newPassword: 'a-new-secure-password' })
       authenticated = false
+      return new HttpResponse(null, { status: 204 })
+    }),
+    http.get(`${base}/newsletter/subscription`, () => HttpResponse.json({ subscribed: false })),
+    http.post(`${base}/newsletter/subscription`, ({ request }) => {
+      expect(request.headers.get('x-csrf-token')).toBe('authenticated-token')
+      return HttpResponse.json({ subscribed: true })
+    }),
+    http.delete(`${base}/newsletter/subscription`, ({ request }) => {
+      expect(request.headers.get('x-csrf-token')).toBe('authenticated-token')
       return new HttpResponse(null, { status: 204 })
     }),
   ]
@@ -162,5 +171,27 @@ describe('account authentication', () => {
     await user.click(screen.getByRole('button', { name: 'Change password' }))
     expect(await screen.findByRole('heading', { name: 'Log in' })).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('All sessions were signed out')
+  })
+
+  it('lets a verified user subscribe and unsubscribe from the newsletter', async () => {
+    server.use(...authHandlers({ emailVerified: true }))
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/account" element={<Account />} />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>,
+    )
+    const user = userEvent.setup()
+    await user.type(await screen.findByLabelText('Email'), 'reader@example.com')
+    await user.type(screen.getByLabelText('Password'), 'a-secure-password')
+    await user.click(screen.getByRole('button', { name: 'Log in' }))
+    await user.click(await screen.findByRole('button', { name: 'Subscribe' }))
+    expect(await screen.findByRole('status')).toHaveTextContent('You are subscribed')
+    await user.click(screen.getByRole('button', { name: 'Unsubscribe' }))
+    expect(await screen.findByRole('status')).toHaveTextContent('You have unsubscribed')
   })
 })

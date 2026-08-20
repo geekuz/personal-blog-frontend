@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import StatusMessage from '../components/ui/StatusMessage'
@@ -6,13 +6,31 @@ import { useDocumentMeta } from '../hooks/useDocumentMeta'
 
 function Account() {
   useDocumentMeta({ title: 'Account — otabek.dev' })
-  const { user, isLoading, logout, resendVerification, changePassword } = useAuth()
+  const {
+    user, isLoading, logout, resendVerification, changePassword,
+    newsletterStatus, subscribeNewsletter, unsubscribeNewsletter,
+  } = useAuth()
   const [verificationMessage, setVerificationMessage] = useState('')
   const [verificationError, setVerificationError] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [passwordError, setPasswordError] = useState('')
   const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [subscription, setSubscription] = useState({ status: 'loading', subscribed: false, message: '' })
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!user?.emailVerified) return
+    let active = true
+    newsletterStatus()
+      .then(({ subscribed }) => {
+        if (active) setSubscription({ status: 'ready', subscribed, message: '' })
+      })
+      .catch((error) => {
+        if (active) setSubscription({ status: 'error', subscribed: false, message: error.message })
+      })
+    return () => { active = false }
+  }, [newsletterStatus, user?.emailVerified])
+
   if (isLoading) return <StatusMessage title="Loading account…">Checking your session.</StatusMessage>
   if (!user) return <Navigate to="/login" replace state={{ from: '/account' }} />
 
@@ -58,6 +76,22 @@ function Account() {
     }
   }
 
+  async function toggleNewsletter() {
+    const wasSubscribed = subscription.subscribed
+    setSubscription({ status: 'saving', subscribed: wasSubscribed, message: '' })
+    try {
+      if (wasSubscribed) await unsubscribeNewsletter()
+      else await subscribeNewsletter()
+      setSubscription({
+        status: 'ready',
+        subscribed: !wasSubscribed,
+        message: wasSubscribed ? 'You have unsubscribed from the newsletter.' : 'You are subscribed to the newsletter.',
+      })
+    } catch (error) {
+      setSubscription({ status: 'error', subscribed: wasSubscribed, message: error.message })
+    }
+  }
+
   return (
     <section className="mx-auto max-w-xl">
       <h1 className="text-3xl font-bold text-heading">Your account</h1>
@@ -78,6 +112,35 @@ function Account() {
           </div>
         )}
       </div>
+      {user.emailVerified && (
+        <div className="mt-6 rounded-xl border border-border bg-surface p-6">
+          <h2 className="text-xl font-semibold text-heading">Newsletter</h2>
+          <p className="mt-2 text-sm text-muted">
+            Get an email when a new article is published. You can unsubscribe at any time.
+          </p>
+          {subscription.status === 'loading' ? (
+            <p role="status" className="mt-4 text-sm text-muted">Checking subscription…</p>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={toggleNewsletter}
+                disabled={subscription.status === 'saving'}
+                className="mt-4 rounded-lg border border-border px-4 py-2 text-sm text-heading hover:border-accent disabled:opacity-60"
+              >
+                {subscription.status === 'saving'
+                  ? 'Saving…'
+                  : subscription.subscribed ? 'Unsubscribe' : 'Subscribe'}
+              </button>
+              {subscription.message && (
+                <p role={subscription.status === 'error' ? 'alert' : 'status'} className={`mt-3 text-sm ${subscription.status === 'error' ? 'text-red-600 dark:text-red-400' : 'text-green-700 dark:text-green-400'}`}>
+                  {subscription.message}
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      )}
       <div className="mt-6 rounded-xl border border-border bg-surface p-6">
         <h2 className="text-xl font-semibold text-heading">Change password</h2>
         <p className="mt-2 text-sm text-muted">Changing it signs your account out on every device.</p>

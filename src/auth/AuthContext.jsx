@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   getCsrfToken,
   getSession,
+  getNewsletterSubscription,
   changePassword as changePasswordRequest,
   loginAccount,
   logoutAccount,
@@ -10,6 +11,8 @@ import {
   resetPassword as resetPasswordRequest,
   resendVerificationEmail,
   verifyEmailToken,
+  subscribeToNewsletter,
+  unsubscribeFromNewsletter,
 } from '../api/auth'
 import { AuthContext } from './auth-context'
 
@@ -90,10 +93,21 @@ export function AuthProvider({ children }) {
     setUser(null)
   }, [ensureCsrf])
 
+  const newsletterStatus = useCallback(() => getNewsletterSubscription(), [])
+
+  const subscribeNewsletter = useCallback(async () => (
+    subscribeToNewsletter(await ensureCsrf())
+  ), [ensureCsrf])
+
+  const unsubscribeNewsletter = useCallback(async () => {
+    await unsubscribeFromNewsletter(await ensureCsrf())
+  }, [ensureCsrf])
+
   return (
     <AuthContext.Provider value={{
       user, isLoading, authNotice, login, register, logout, verifyEmail, resendVerification,
       forgotPassword, resetPassword, changePassword,
+      newsletterStatus, subscribeNewsletter, unsubscribeNewsletter,
     }}>
       {children}
     </AuthContext.Provider>
