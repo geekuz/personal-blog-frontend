@@ -15,6 +15,7 @@ import {
   unsubscribeFromNewsletter,
 } from '../api/auth'
 import { AuthContext } from './auth-context'
+import { createComment, deleteComment } from '../api/posts'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -103,11 +104,20 @@ export function AuthProvider({ children }) {
     await unsubscribeFromNewsletter(await ensureCsrf())
   }, [ensureCsrf])
 
+  const addComment = useCallback(async (slug, body) => (
+    createComment(slug, body, await ensureCsrf())
+  ), [ensureCsrf])
+
+  const removeComment = useCallback(async (commentId) => {
+    await deleteComment(commentId, await ensureCsrf())
+  }, [ensureCsrf])
+
   return (
     <AuthContext.Provider value={{
       user, isLoading, authNotice, login, register, logout, verifyEmail, resendVerification,
       forgotPassword, resetPassword, changePassword,
       newsletterStatus, subscribeNewsletter, unsubscribeNewsletter,
+      addComment, removeComment,
     }}>
       {children}
     </AuthContext.Provider>

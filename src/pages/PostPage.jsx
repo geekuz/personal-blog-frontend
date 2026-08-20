@@ -7,6 +7,7 @@ import StatusMessage from '../components/ui/StatusMessage'
 import { getPostBySlug } from '../api/posts'
 import { formatDate } from '../lib/formatDate'
 import { useDocumentMeta } from '../hooks/useDocumentMeta'
+import Comments from '../components/blog/Comments'
 
 function PostPage() {
   const { slug } = useParams()
@@ -70,6 +71,7 @@ function PostPage() {
       <div className="prose prose-zinc max-w-none dark:prose-invert prose-a:text-accent">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
       </div>
+      <Comments slug={slug} />
     </article>
   )
 }

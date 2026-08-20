@@ -18,6 +18,7 @@ async function request(path, { signal } = {}) {
 
   const response = await fetch(`${configuredBaseUrl}${path}`, {
     signal,
+    credentials: 'include',
     headers: { Accept: 'application/json' },
   })
 
@@ -57,4 +58,39 @@ export async function getPostBySlug(slug, { signal } = {}) {
 
 export async function getTags({ signal } = {}) {
   return request('/tags', { signal })
+}
+
+export async function getComments(slug, { signal } = {}) {
+  return request(`/posts/${encodeURIComponent(slug)}/comments`, { signal })
+}
+
+export async function createComment(slug, body, csrf) {
+  return commentMutation(`/posts/${encodeURIComponent(slug)}/comments`, 'POST', { body }, csrf)
+}
+
+export async function deleteComment(commentId, csrf) {
+  return commentMutation(`/comments/${encodeURIComponent(commentId)}`, 'DELETE', null, csrf)
+}
+
+async function commentMutation(path, method, details, csrf) {
+  if (!configuredBaseUrl) throw new ApiError('The blog API URL is not configured.', { code: 'CONFIGURATION_ERROR' })
+  const response = await fetch(`${configuredBaseUrl}${path}`, {
+    method,
+    credentials: 'include',
+    headers: {
+      Accept: 'application/json',
+      ...(details === null ? {} : { 'Content-Type': 'application/json' }),
+      [csrf.headerName]: csrf.token,
+    },
+    ...(details === null ? {} : { body: JSON.stringify(details) }),
+  })
+  if (response.status === 204) return null
+  if (!response.ok) {
+    const detailsBody = await response.json().catch(() => null)
+    throw new ApiError(detailsBody?.message ?? 'The blog service is unavailable.', {
+      status: response.status,
+      code: detailsBody?.code ?? 'REQUEST_FAILED',
+    })
+  }
+  return response.json()
 }

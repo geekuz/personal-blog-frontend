@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event'
 import Home from './Home'
 import PostPage from './PostPage'
 import { server } from '../test/server'
+import { AuthContext } from '../auth/auth-context'
 
 const post = {
   slug: 'api-post', title: 'API post', summary: 'From the service',
@@ -16,9 +17,11 @@ const post = {
 function renderRoute(element, path = '/', routePath = '*') {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route path={routePath} element={element} />
-      </Routes>
+      <AuthContext.Provider value={{ user: null }}>
+        <Routes>
+          <Route path={routePath} element={element} />
+        </Routes>
+      </AuthContext.Provider>
     </MemoryRouter>,
   )
 }
@@ -85,14 +88,20 @@ describe('Home API states', () => {
 
 describe('PostPage API states', () => {
   it('renders a successful post response', async () => {
-    server.use(http.get('http://localhost:8080/api/v1/posts/api-post', () => HttpResponse.json({ ...post, content: '## Loaded content' })))
+    server.use(
+      http.get('http://localhost:8080/api/v1/posts/api-post', () => HttpResponse.json({ ...post, content: '## Loaded content' })),
+      http.get('http://localhost:8080/api/v1/posts/api-post/comments', () => HttpResponse.json({ items: [] })),
+    )
     renderRoute(<PostPage />, '/blog/api-post', '/blog/:slug')
     expect(await screen.findByRole('heading', { name: 'API post' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Loaded content' })).toBeInTheDocument()
   })
 
   it('renders not found for a missing post', async () => {
-    server.use(http.get('http://localhost:8080/api/v1/posts/missing', () => HttpResponse.json({ code: 'POST_NOT_FOUND' }, { status: 404 })))
+    server.use(
+      http.get('http://localhost:8080/api/v1/posts/missing', () => HttpResponse.json({ code: 'POST_NOT_FOUND' }, { status: 404 })),
+      http.get('http://localhost:8080/api/v1/posts/missing/comments', () => HttpResponse.json({ items: [] })),
+    )
     renderRoute(<PostPage />, '/blog/missing', '/blog/:slug')
     expect(await screen.findByRole('heading', { name: /Page not found/i })).toBeInTheDocument()
   })
