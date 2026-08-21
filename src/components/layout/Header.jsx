@@ -35,6 +35,9 @@ function Header() {
               {user ? 'Account' : 'Log in'}
             </NavLink>
           )}
+          {!isLoading && user?.roles.includes('ADMIN') && (
+            <NavLink to="/admin" className={navClass}>Admin</NavLink>
+          )}
           <ThemeToggle />
         </nav>
       </div>

@@ -16,6 +16,7 @@ import {
 } from '../api/auth'
 import { AuthContext } from './auth-context'
 import { createComment, deleteComment } from '../api/posts'
+import { deletePost, getDashboard, savePost } from '../api/admin'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -112,12 +113,21 @@ export function AuthProvider({ children }) {
     await deleteComment(commentId, await ensureCsrf())
   }, [ensureCsrf])
 
+  const loadDashboard = useCallback((options) => getDashboard(options), [])
+  const saveAdminPost = useCallback(async (currentSlug, details) => (
+    savePost(currentSlug, details, await ensureCsrf())
+  ), [ensureCsrf])
+  const deleteAdminPost = useCallback(async (slug) => {
+    await deletePost(slug, await ensureCsrf())
+  }, [ensureCsrf])
+
   return (
     <AuthContext.Provider value={{
       user, isLoading, authNotice, login, register, logout, verifyEmail, resendVerification,
       forgotPassword, resetPassword, changePassword,
       newsletterStatus, subscribeNewsletter, unsubscribeNewsletter,
       addComment, removeComment,
+      loadDashboard, saveAdminPost, deleteAdminPost,
     }}>
       {children}
     </AuthContext.Provider>

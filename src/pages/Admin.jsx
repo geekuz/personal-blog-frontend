@@ -1,0 +1,104 @@
+import { useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
+import { useAuth } from '../auth/useAuth'
+import StatusMessage from '../components/ui/StatusMessage'
+import { useDocumentMeta } from '../hooks/useDocumentMeta'
+
+const emptyPost = { slug: '', title: '', summary: '', content: '', status: 'DRAFT', tags: [] }
+
+function Admin() {
+  useDocumentMeta({ title: 'Admin — otabek.dev' })
+  const { user, isLoading, loadDashboard, saveAdminPost, deleteAdminPost } = useAuth()
+  const [dashboard, setDashboard] = useState({ status: 'loading', data: null, message: '' })
+  const [editing, setEditing] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [notice, setNotice] = useState('')
+
+  function refresh() {
+    setDashboard((current) => ({ ...current, status: 'loading', message: '' }))
+    return loadDashboard().then((data) => setDashboard({ status: 'ready', data, message: '' }))
+      .catch((error) => setDashboard({ status: 'error', data: null, message: error.message }))
+  }
+
+  useEffect(() => {
+    if (!user?.roles.includes('ADMIN')) return
+    let active = true
+    loadDashboard().then((data) => { if (active) setDashboard({ status: 'ready', data, message: '' }) })
+      .catch((error) => { if (active) setDashboard({ status: 'error', data: null, message: error.message }) })
+    return () => { active = false }
+  }, [loadDashboard, user])
+
+  if (isLoading) return <StatusMessage title="Loading admin…">Checking your permissions.</StatusMessage>
+  if (!user) return <Navigate to="/login" replace state={{ from: '/admin' }} />
+  if (!user.roles.includes('ADMIN')) return <Navigate to="/account" replace />
+  if (dashboard.status === 'loading' && !dashboard.data) return <StatusMessage title="Loading dashboard…">Fetching posts and newsletter status.</StatusMessage>
+  if (dashboard.status === 'error') return <StatusMessage title="Dashboard unavailable" action={<button onClick={refresh}>Try again</button>}>{dashboard.message}</StatusMessage>
+
+  async function submit(event) {
+    event.preventDefault(); setSaving(true); setNotice('')
+    const form = new FormData(event.currentTarget)
+    const tags = String(form.get('tags')).split(',').map((name) => name.trim()).filter(Boolean)
+      .map((name) => ({ name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') }))
+      .filter((tag) => tag.slug)
+    const details = {
+      slug: form.get('slug'), title: form.get('title'), summary: form.get('summary'), content: form.get('content'),
+      status: form.get('status'), tags,
+    }
+    try {
+      await saveAdminPost(editing?.originalSlug ?? null, details)
+      setEditing(null); setNotice(details.status === 'PUBLISHED' ? 'Post saved. New subscribers are being emailed.' : 'Draft saved.')
+      await refresh()
+    } catch (error) { setNotice(error.message) } finally { setSaving(false) }
+  }
+
+  async function remove(post) {
+    if (!window.confirm(`Delete “${post.title}”? This cannot be undone.`)) return
+    setNotice('')
+    try { await deleteAdminPost(post.slug); setEditing(null); setNotice('Post deleted.'); await refresh() }
+    catch (error) { setNotice(error.message) }
+  }
+
+  const data = dashboard.data
+  return (
+    <section className="mx-auto max-w-5xl">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div><p className="text-sm font-medium text-accent">Administration</p><h1 className="text-3xl font-bold text-heading">Publishing dashboard</h1></div>
+        <button onClick={() => setEditing({ ...emptyPost, originalSlug: null })} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white">New post</button>
+      </div>
+      <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <Metric label="Published" value={data.publishedPosts} /><Metric label="Drafts" value={data.draftPosts} />
+        <Metric label="Subscribers" value={data.subscribers} /><Metric label="Emails queued" value={data.pendingDeliveries} />
+        <Metric label="Email failures" value={data.failedDeliveries} />
+      </dl>
+      {notice && <p role="status" className="mt-6 rounded-lg border border-border bg-surface p-3 text-sm text-heading">{notice}</p>}
+      {editing && <PostEditor post={editing} saving={saving} onSubmit={submit} onCancel={() => setEditing(null)} />}
+      <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-surface">
+        {data.posts.length === 0 ? <p className="p-6 text-sm text-muted">No posts yet.</p> : (
+          <table className="w-full text-left text-sm"><thead className="border-b border-border text-muted"><tr><th className="p-4">Title</th><th className="p-4">Status</th><th className="p-4">Updated</th><th className="p-4"><span className="sr-only">Actions</span></th></tr></thead>
+            <tbody>{data.posts.map((post) => <tr key={post.id} className="border-b border-border last:border-0"><td className="p-4 font-medium text-heading">{post.title}<span className="mt-1 block text-xs font-normal text-muted">/{post.slug}</span></td><td className="p-4 text-muted">{post.status}</td><td className="p-4 text-muted">{new Date(post.updatedAt).toLocaleDateString()}</td><td className="p-4"><div className="flex justify-end gap-3"><button onClick={() => setEditing({ ...post, originalSlug: post.slug })} className="text-accent">Edit</button><button onClick={() => remove(post)} className="text-red-600 dark:text-red-400">Delete</button></div></td></tr>)}</tbody>
+          </table>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function Metric({ label, value }) { return <div className="rounded-xl border border-border bg-surface p-4"><dt className="text-xs uppercase tracking-wide text-muted">{label}</dt><dd className="mt-2 text-2xl font-bold text-heading">{value}</dd></div> }
+
+function PostEditor({ post, saving, onSubmit, onCancel }) {
+  return <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-border bg-surface p-6">
+    <h2 className="text-xl font-semibold text-heading">{post.originalSlug ? 'Edit post' : 'New post'}</h2>
+    <Field label="Title" name="title" defaultValue={post.title} maxLength="200" />
+    <Field label="Slug" name="slug" defaultValue={post.slug} maxLength="160" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
+    <label className="block text-sm font-medium text-heading">Summary<textarea name="summary" required maxLength="500" defaultValue={post.summary} rows="3" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
+    <label className="block text-sm font-medium text-heading">Content (Markdown)<textarea name="content" required defaultValue={post.content} rows="16" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm text-heading" /></label>
+    <Field label="Tags (comma separated)" name="tags" defaultValue={post.tags.map((tag) => tag.name).join(', ')} />
+    <label className="block text-sm font-medium text-heading">Status<select name="status" defaultValue={post.status} className="mt-2 block rounded-lg border border-border bg-background px-3 py-2 text-heading"><option value="DRAFT">Draft</option><option value="PUBLISHED">Published</option></select></label>
+    <p className="text-sm text-muted">Changing a draft to Published queues one email for every current subscriber.</p>
+    <div className="flex gap-3"><button disabled={saving} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60">{saving ? 'Saving…' : 'Save post'}</button><button type="button" onClick={onCancel} className="rounded-lg border border-border px-4 py-2.5 text-sm text-heading">Cancel</button></div>
+  </form>
+}
+
+function Field({ label, ...props }) { return <label className="block text-sm font-medium text-heading">{label}<input required className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" {...props} /></label> }
+
+export default Admin
