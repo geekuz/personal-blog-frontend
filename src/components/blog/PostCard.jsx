@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { formatDate } from '../../lib/formatDate'
+import CoverImage from './CoverImage'
 
 // PostCard receives one `post` object via props and renders a summary card.
 // It computes the date label and reading time from the post — derived values,
@@ -10,6 +11,7 @@ import { formatDate } from '../../lib/formatDate'
 function PostCard({ post }) {
   return (
     <article className="group rounded-xl border border-border p-5 transition-colors hover:border-accent">
+      <CoverImage src={post.coverImageUrl} alt={post.coverImageAlt} className="mb-4 aspect-video w-full rounded-lg object-cover" />
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
         <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
         <span aria-hidden="true">·</span>

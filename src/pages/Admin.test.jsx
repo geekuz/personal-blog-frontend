@@ -8,7 +8,8 @@ import { AuthContext } from '../auth/auth-context'
 const dashboard = {
   publishedPosts: 2, draftPosts: 1, subscribers: 7, pendingDeliveries: 3, failedDeliveries: 0,
   posts: [{ id: '1', slug: 'hello-world', title: 'Hello world', summary: 'Summary', content: '# Hello',
-    status: 'PUBLISHED', updatedAt: '2026-08-21T12:00:00Z', tags: [{ name: 'Java', slug: 'java' }] }],
+    coverImageUrl: null, coverImageAlt: null, status: 'PUBLISHED', updatedAt: '2026-08-21T12:00:00Z',
+    tags: [{ name: 'Java', slug: 'java' }] }],
 }
 
 describe('Admin dashboard', () => {
@@ -27,16 +28,21 @@ describe('Admin dashboard', () => {
     await user.type(screen.getByLabelText('Title'), 'New draft')
     await user.type(screen.getByLabelText('Slug'), 'new-draft')
     await user.type(screen.getByLabelText('Summary'), 'A useful summary')
+    await user.type(screen.getByLabelText('Cover image URL (optional)'), 'https://images.example.com/draft.jpg')
+    await user.type(screen.getByLabelText('Cover image alt text'), 'Draft illustration')
     await user.type(screen.getByLabelText('Content (Markdown)'), '# Draft')
     await user.click(screen.getByRole('button', { name: 'Preview' }))
     const preview = screen.getByLabelText('Post preview')
     expect(preview).toHaveTextContent('Draft')
     expect(preview.querySelector('h1')).toHaveTextContent('Draft')
+    expect(preview.querySelector('img')).toHaveAttribute('src', 'https://images.example.com/draft.jpg')
+    expect(preview.querySelector('img')).toHaveAttribute('alt', 'Draft illustration')
     await user.type(screen.getByLabelText('Tags (comma separated)'), 'React, Testing')
     await user.click(screen.getByRole('button', { name: 'Save post' }))
 
     expect(saveAdminPost).toHaveBeenCalledWith(null, expect.objectContaining({
-      slug: 'new-draft', content: '# Draft', status: 'DRAFT',
+      slug: 'new-draft', content: '# Draft', coverImageUrl: 'https://images.example.com/draft.jpg',
+      coverImageAlt: 'Draft illustration', status: 'DRAFT',
       tags: [{ name: 'React', slug: 'react' }, { name: 'Testing', slug: 'testing' }],
     }))
     expect(await screen.findByRole('status')).toHaveTextContent('Draft saved')

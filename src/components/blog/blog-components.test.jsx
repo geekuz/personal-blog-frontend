@@ -12,6 +12,7 @@ describe('blog components', () => {
       <MemoryRouter>
         <PostCard post={{
           slug: 'tested-post', title: 'Tested post', summary: 'Reliable UI',
+          coverImageUrl: 'https://images.example.com/tested.jpg', coverImageAlt: 'Test suite dashboard',
           tags: ['testing'], publishedAt: '2026-06-23T12:00:00Z',
           readingTimeMinutes: 4,
         }} />
@@ -19,6 +20,7 @@ describe('blog components', () => {
     )
 
     expect(screen.getByRole('link', { name: 'Tested post' })).toHaveAttribute('href', '/blog/tested-post')
+    expect(screen.getByRole('img', { name: 'Test suite dashboard' })).toHaveAttribute('src', 'https://images.example.com/tested.jpg')
     expect(screen.getByText('June 23, 2026')).toBeInTheDocument()
     expect(screen.getByText('4 min read')).toBeInTheDocument()
     expect(screen.getByText('#testing')).toBeInTheDocument()

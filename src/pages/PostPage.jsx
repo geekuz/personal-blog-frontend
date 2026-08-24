@@ -7,6 +7,7 @@ import { formatDate } from '../lib/formatDate'
 import { useDocumentMeta } from '../hooks/useDocumentMeta'
 import Comments from '../components/blog/Comments'
 import MarkdownContent from '../components/blog/MarkdownContent'
+import CoverImage from '../components/blog/CoverImage'
 
 function PostPage() {
   const { slug } = useParams()
@@ -67,6 +68,7 @@ function PostPage() {
           <span>{post.readingTimeMinutes} min read</span>
         </div>
       </header>
+      <CoverImage src={post.coverImageUrl} alt={post.coverImageAlt} className="mb-8 aspect-video w-full rounded-xl object-cover" />
       <MarkdownContent>{post.content}</MarkdownContent>
       <Comments slug={slug} />
     </article>

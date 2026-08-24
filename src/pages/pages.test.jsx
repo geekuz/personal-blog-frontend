@@ -10,6 +10,7 @@ import { AuthContext } from '../auth/auth-context'
 
 const post = {
   slug: 'api-post', title: 'API post', summary: 'From the service',
+  coverImageUrl: 'https://images.example.com/api.jpg', coverImageAlt: 'API flow diagram',
   tags: ['react'], publishedAt: '2026-06-23T12:00:00Z',
   readingTimeMinutes: 2,
 }
@@ -94,6 +95,7 @@ describe('PostPage API states', () => {
     )
     renderRoute(<PostPage />, '/blog/api-post', '/blog/:slug')
     expect(await screen.findByRole('heading', { name: 'API post' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'API flow diagram' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Loaded content' })).toBeInTheDocument()
   })
 

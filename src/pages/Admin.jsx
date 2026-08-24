@@ -4,8 +4,9 @@ import { useAuth } from '../auth/useAuth'
 import StatusMessage from '../components/ui/StatusMessage'
 import { useDocumentMeta } from '../hooks/useDocumentMeta'
 import MarkdownContent from '../components/blog/MarkdownContent'
+import CoverImage from '../components/blog/CoverImage'
 
-const emptyPost = { slug: '', title: '', summary: '', content: '', status: 'DRAFT', tags: [] }
+const emptyPost = { slug: '', title: '', summary: '', content: '', coverImageUrl: '', coverImageAlt: '', status: 'DRAFT', tags: [] }
 
 function Admin() {
   useDocumentMeta({ title: 'Admin — otabek.dev' })
@@ -43,6 +44,8 @@ function Admin() {
       .filter((tag) => tag.slug)
     const details = {
       slug: form.get('slug'), title: form.get('title'), summary: form.get('summary'), content: form.get('content'),
+      coverImageUrl: form.get('coverImageUrl')?.trim() || null,
+      coverImageAlt: form.get('coverImageAlt')?.trim() || null,
       status: form.get('status'), tags,
     }
     try {
@@ -89,12 +92,16 @@ function Metric({ label, value }) { return <div className="rounded-xl border bor
 function PostEditor({ post, saving, onSubmit, onCancel }) {
   const [editorMode, setEditorMode] = useState('write')
   const [content, setContent] = useState(post.content)
+  const [coverImageUrl, setCoverImageUrl] = useState(post.coverImageUrl ?? '')
+  const [coverImageAlt, setCoverImageAlt] = useState(post.coverImageAlt ?? '')
 
   return <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-border bg-surface p-6">
     <h2 className="text-xl font-semibold text-heading">{post.originalSlug ? 'Edit post' : 'New post'}</h2>
     <Field label="Title" name="title" defaultValue={post.title} maxLength="200" />
     <Field label="Slug" name="slug" defaultValue={post.slug} maxLength="160" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
     <label className="block text-sm font-medium text-heading">Summary<textarea name="summary" required maxLength="500" defaultValue={post.summary} rows="3" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
+    <label className="block text-sm font-medium text-heading">Cover image URL (optional)<input type="url" name="coverImageUrl" value={coverImageUrl} onChange={(event) => setCoverImageUrl(event.target.value)} maxLength="2048" required={Boolean(coverImageAlt.trim())} placeholder="https://example.com/cover.jpg" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
+    <label className="block text-sm font-medium text-heading">Cover image alt text<input name="coverImageAlt" value={coverImageAlt} onChange={(event) => setCoverImageAlt(event.target.value)} maxLength="300" required={Boolean(coverImageUrl.trim())} placeholder="Describe the image for screen readers" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
     <div>
       <div className="flex items-center justify-between gap-4">
         <span className="text-sm font-medium text-heading">Content (Markdown)</span>
@@ -109,6 +116,7 @@ function PostEditor({ post, saving, onSubmit, onCancel }) {
         <>
           <input type="hidden" name="content" value={content} />
           <div aria-label="Post preview" className="mt-2 min-h-96 rounded-lg border border-border bg-background p-5">
+            <CoverImage src={coverImageUrl.trim()} alt={coverImageAlt.trim()} className="mb-6 aspect-video w-full rounded-lg object-cover" />
             {content.trim() ? <MarkdownContent>{content}</MarkdownContent> : <p className="text-sm text-muted">Start writing to see a preview.</p>}
           </div>
         </>
