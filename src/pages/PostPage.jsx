@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import NotFound from './NotFound'
 import StatusMessage from '../components/ui/StatusMessage'
 import { getPostBySlug } from '../api/posts'
 import { formatDate } from '../lib/formatDate'
 import { useDocumentMeta } from '../hooks/useDocumentMeta'
 import Comments from '../components/blog/Comments'
+import MarkdownContent from '../components/blog/MarkdownContent'
 
 function PostPage() {
   const { slug } = useParams()
@@ -68,9 +67,7 @@ function PostPage() {
           <span>{post.readingTimeMinutes} min read</span>
         </div>
       </header>
-      <div className="prose prose-zinc max-w-none dark:prose-invert prose-a:text-accent">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
-      </div>
+      <MarkdownContent>{post.content}</MarkdownContent>
       <Comments slug={slug} />
     </article>
   )

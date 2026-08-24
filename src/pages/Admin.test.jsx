@@ -28,11 +28,16 @@ describe('Admin dashboard', () => {
     await user.type(screen.getByLabelText('Slug'), 'new-draft')
     await user.type(screen.getByLabelText('Summary'), 'A useful summary')
     await user.type(screen.getByLabelText('Content (Markdown)'), '# Draft')
+    await user.click(screen.getByRole('button', { name: 'Preview' }))
+    const preview = screen.getByLabelText('Post preview')
+    expect(preview).toHaveTextContent('Draft')
+    expect(preview.querySelector('h1')).toHaveTextContent('Draft')
     await user.type(screen.getByLabelText('Tags (comma separated)'), 'React, Testing')
     await user.click(screen.getByRole('button', { name: 'Save post' }))
 
     expect(saveAdminPost).toHaveBeenCalledWith(null, expect.objectContaining({
-      slug: 'new-draft', status: 'DRAFT', tags: [{ name: 'React', slug: 'react' }, { name: 'Testing', slug: 'testing' }],
+      slug: 'new-draft', content: '# Draft', status: 'DRAFT',
+      tags: [{ name: 'React', slug: 'react' }, { name: 'Testing', slug: 'testing' }],
     }))
     expect(await screen.findByRole('status')).toHaveTextContent('Draft saved')
   })

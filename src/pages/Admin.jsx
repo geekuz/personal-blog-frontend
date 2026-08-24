@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import StatusMessage from '../components/ui/StatusMessage'
 import { useDocumentMeta } from '../hooks/useDocumentMeta'
+import MarkdownContent from '../components/blog/MarkdownContent'
 
 const emptyPost = { slug: '', title: '', summary: '', content: '', status: 'DRAFT', tags: [] }
 
@@ -86,12 +87,33 @@ function Admin() {
 function Metric({ label, value }) { return <div className="rounded-xl border border-border bg-surface p-4"><dt className="text-xs uppercase tracking-wide text-muted">{label}</dt><dd className="mt-2 text-2xl font-bold text-heading">{value}</dd></div> }
 
 function PostEditor({ post, saving, onSubmit, onCancel }) {
+  const [editorMode, setEditorMode] = useState('write')
+  const [content, setContent] = useState(post.content)
+
   return <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-border bg-surface p-6">
     <h2 className="text-xl font-semibold text-heading">{post.originalSlug ? 'Edit post' : 'New post'}</h2>
     <Field label="Title" name="title" defaultValue={post.title} maxLength="200" />
     <Field label="Slug" name="slug" defaultValue={post.slug} maxLength="160" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
     <label className="block text-sm font-medium text-heading">Summary<textarea name="summary" required maxLength="500" defaultValue={post.summary} rows="3" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
-    <label className="block text-sm font-medium text-heading">Content (Markdown)<textarea name="content" required defaultValue={post.content} rows="16" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm text-heading" /></label>
+    <div>
+      <div className="flex items-center justify-between gap-4">
+        <span className="text-sm font-medium text-heading">Content (Markdown)</span>
+        <div className="flex rounded-lg border border-border bg-background p-1" aria-label="Editor view">
+          <button type="button" aria-pressed={editorMode === 'write'} onClick={() => setEditorMode('write')} className={`rounded-md px-3 py-1.5 text-sm ${editorMode === 'write' ? 'bg-accent text-white' : 'text-muted hover:text-heading'}`}>Write</button>
+          <button type="button" aria-pressed={editorMode === 'preview'} onClick={() => setEditorMode('preview')} className={`rounded-md px-3 py-1.5 text-sm ${editorMode === 'preview' ? 'bg-accent text-white' : 'text-muted hover:text-heading'}`}>Preview</button>
+        </div>
+      </div>
+      {editorMode === 'write' ? (
+        <textarea aria-label="Content (Markdown)" name="content" required value={content} onChange={(event) => setContent(event.target.value)} rows="16" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm text-heading" />
+      ) : (
+        <>
+          <input type="hidden" name="content" value={content} />
+          <div aria-label="Post preview" className="mt-2 min-h-96 rounded-lg border border-border bg-background p-5">
+            {content.trim() ? <MarkdownContent>{content}</MarkdownContent> : <p className="text-sm text-muted">Start writing to see a preview.</p>}
+          </div>
+        </>
+      )}
+    </div>
     <Field label="Tags (comma separated)" name="tags" defaultValue={post.tags.map((tag) => tag.name).join(', ')} />
     <label className="block text-sm font-medium text-heading">Status<select name="status" defaultValue={post.status} className="mt-2 block rounded-lg border border-border bg-background px-3 py-2 text-heading"><option value="DRAFT">Draft</option><option value="PUBLISHED">Published</option></select></label>
     <p className="text-sm text-muted">Changing a draft to Published queues one email for every current subscriber.</p>
