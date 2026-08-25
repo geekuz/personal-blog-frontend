@@ -1,14 +1,28 @@
 import { useState } from 'react'
 
-function CoverImage({ src, alt, className = '' }) {
-  const [failedSrc, setFailedSrc] = useState(null)
+function CoverImageLoader({ src, alt, className }) {
+  const [attempt, setAttempt] = useState(0)
+  const [failed, setFailed] = useState(false)
 
-  if (!src) return null
-  if (failedSrc === src) {
+  if (failed) {
     return <p role="status" className="rounded-lg border border-border bg-background p-4 text-sm text-muted">Cover image could not be loaded.</p>
   }
 
-  return <img src={src} alt={alt} onError={() => setFailedSrc(src)} className={className} />
+  const handleError = () => {
+    if (attempt === 0) {
+      setAttempt(1)
+    } else {
+      setFailed(true)
+    }
+  }
+
+  return <img key={attempt} src={src} alt={alt} onError={handleError} className={className} />
+}
+
+function CoverImage({ src, alt, className = '' }) {
+  if (!src) return null
+
+  return <CoverImageLoader key={src} src={src} alt={alt} className={className} />
 }
 
 export default CoverImage

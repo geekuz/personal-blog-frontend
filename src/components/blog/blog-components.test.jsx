@@ -1,12 +1,26 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import CoverImage from './CoverImage'
 import PostCard from './PostCard'
 import SearchBar from './SearchBar'
 import TagFilter from './TagFilter'
 
 describe('blog components', () => {
+  it('retries a cover image once and resets failures when its URL changes', () => {
+    const { rerender } = render(<CoverImage src="https://images.example.com/first.jpg" alt="First cover" />)
+
+    fireEvent.error(screen.getByRole('img', { name: 'First cover' }))
+    expect(screen.getByRole('img', { name: 'First cover' })).toBeInTheDocument()
+
+    fireEvent.error(screen.getByRole('img', { name: 'First cover' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Cover image could not be loaded.')
+
+    rerender(<CoverImage src="https://images.example.com/second.jpg" alt="Second cover" />)
+    expect(screen.getByRole('img', { name: 'Second cover' })).toHaveAttribute('src', 'https://images.example.com/second.jpg')
+  })
+
   it('renders post metadata and its detail link', () => {
     render(
       <MemoryRouter>
