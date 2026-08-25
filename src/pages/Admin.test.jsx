@@ -6,9 +6,9 @@ import Admin from './Admin'
 import { AuthContext } from '../auth/auth-context'
 
 const dashboard = {
-  publishedPosts: 2, draftPosts: 1, subscribers: 7, pendingDeliveries: 3, failedDeliveries: 0,
+  publishedPosts: 2, draftPosts: 1, scheduledPosts: 0, subscribers: 7, pendingDeliveries: 3, failedDeliveries: 0,
   posts: [{ id: '1', slug: 'hello-world', title: 'Hello world', summary: 'Summary', content: '# Hello',
-    coverImageUrl: null, coverImageAlt: null, status: 'PUBLISHED', updatedAt: '2026-08-21T12:00:00Z',
+    coverImageUrl: null, coverImageAlt: null, status: 'PUBLISHED', scheduledAt: null, updatedAt: '2026-08-21T12:00:00Z',
     tags: [{ name: 'Java', slug: 'java' }] }],
 }
 
@@ -85,5 +85,30 @@ describe('Admin dashboard', () => {
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(screen.queryByRole('heading', { name: 'New post' })).not.toBeInTheDocument()
     expect(localStorage.getItem('admin-post-draft:new')).toBeNull()
+  })
+
+  it('submits a scheduled post as a UTC instant', async () => {
+    const loadDashboard = vi.fn().mockResolvedValue(dashboard)
+    const saveAdminPost = vi.fn().mockResolvedValue({})
+    render(<MemoryRouter><AuthContext.Provider value={{
+      user: { roles: ['ADMIN'] }, isLoading: false, loadDashboard, saveAdminPost, deleteAdminPost: vi.fn(),
+    }}><Admin /></AuthContext.Provider></MemoryRouter>)
+    const user = userEvent.setup()
+
+    await screen.findByRole('heading', { name: 'Publishing dashboard' })
+    await user.click(screen.getByRole('button', { name: 'New post' }))
+    await user.type(screen.getByLabelText('Title'), 'Scheduled post')
+    await user.type(screen.getByLabelText('Slug'), 'scheduled-post')
+    await user.type(screen.getByLabelText('Summary'), 'Scheduled summary')
+    await user.type(screen.getByLabelText('Content (Markdown)'), 'Scheduled content')
+    await user.type(screen.getByLabelText('Tags (comma separated)'), 'Scheduling')
+    await user.selectOptions(screen.getByLabelText('Status'), 'SCHEDULED')
+    await user.type(screen.getByLabelText('Publish date and time'), '2099-08-26T13:30')
+    await user.click(screen.getByRole('button', { name: 'Save post' }))
+
+    expect(saveAdminPost).toHaveBeenCalledWith(null, expect.objectContaining({
+      status: 'SCHEDULED', scheduledAt: new Date('2099-08-26T13:30').toISOString(),
+    }))
+    expect(await screen.findByRole('status')).toHaveTextContent('Post scheduled.')
   })
 })

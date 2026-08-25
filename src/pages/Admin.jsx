@@ -6,7 +6,7 @@ import { useDocumentMeta } from '../hooks/useDocumentMeta'
 import MarkdownContent from '../components/blog/MarkdownContent'
 import CoverImage from '../components/blog/CoverImage'
 
-const emptyPost = { slug: '', title: '', summary: '', content: '', coverImageUrl: '', coverImageAlt: '', status: 'DRAFT', tags: [] }
+const emptyPost = { slug: '', title: '', summary: '', content: '', coverImageUrl: '', coverImageAlt: '', status: 'DRAFT', scheduledAt: '', tags: [] }
 const AUTOSAVE_DELAY_MS = 500
 
 function draftKey(post) {
@@ -18,13 +18,20 @@ function postValues(post) {
     title: post.title, slug: post.slug, summary: post.summary, content: post.content,
     coverImageUrl: post.coverImageUrl ?? '', coverImageAlt: post.coverImageAlt ?? '',
     tags: post.tags.map((tag) => tag.name).join(', '), status: post.status,
+    scheduledAt: toLocalDateTime(post.scheduledAt),
   }
+}
+
+function toLocalDateTime(instant) {
+  if (!instant) return ''
+  const date = new Date(instant)
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16)
 }
 
 function loadAutosave(post) {
   try {
     const saved = JSON.parse(localStorage.getItem(draftKey(post)))
-    return saved?.values ? saved.values : null
+    return saved?.values ? { ...postValues(post), ...saved.values } : null
   } catch {
     return null
   }
@@ -75,13 +82,15 @@ function Admin() {
       slug: form.get('slug'), title: form.get('title'), summary: form.get('summary'), content: form.get('content'),
       coverImageUrl: form.get('coverImageUrl')?.trim() || null,
       coverImageAlt: form.get('coverImageAlt')?.trim() || null,
-      status: form.get('status'), tags,
+      status: form.get('status'),
+      scheduledAt: form.get('status') === 'SCHEDULED' ? new Date(form.get('scheduledAt')).toISOString() : null,
+      tags,
     }
     try {
       await saveAdminPost(editing?.originalSlug ?? null, details)
       localStorage.removeItem(draftKey(editing))
       setEditorDirty(false)
-      setEditing(null); setNotice(details.status === 'PUBLISHED' ? 'Post saved. New subscribers are being emailed.' : 'Draft saved.')
+      setEditing(null); setNotice(details.status === 'PUBLISHED' ? 'Post saved. New subscribers are being emailed.' : details.status === 'SCHEDULED' ? 'Post scheduled.' : 'Draft saved.')
       await refresh()
     } catch (error) { setNotice(error.message) } finally { setSaving(false) }
   }
@@ -100,9 +109,9 @@ function Admin() {
         <div><p className="text-sm font-medium text-accent">Administration</p><h1 className="text-3xl font-bold text-heading">Publishing dashboard</h1></div>
         <button onClick={() => startEditing({ ...emptyPost, originalSlug: null })} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white">New post</button>
       </div>
-      <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
         <Metric label="Published" value={data.publishedPosts} /><Metric label="Drafts" value={data.draftPosts} />
-        <Metric label="Subscribers" value={data.subscribers} /><Metric label="Emails queued" value={data.pendingDeliveries} />
+        <Metric label="Scheduled" value={data.scheduledPosts} /><Metric label="Subscribers" value={data.subscribers} /><Metric label="Emails queued" value={data.pendingDeliveries} />
         <Metric label="Email failures" value={data.failedDeliveries} />
       </dl>
       {notice && <p role="status" className="mt-6 rounded-lg border border-border bg-surface p-3 text-sm text-heading">{notice}</p>}
@@ -110,7 +119,7 @@ function Admin() {
       <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-surface">
         {data.posts.length === 0 ? <p className="p-6 text-sm text-muted">No posts yet.</p> : (
           <table className="w-full text-left text-sm"><thead className="border-b border-border text-muted"><tr><th className="p-4">Title</th><th className="p-4">Status</th><th className="p-4">Updated</th><th className="p-4"><span className="sr-only">Actions</span></th></tr></thead>
-            <tbody>{data.posts.map((post) => <tr key={post.id} className="border-b border-border last:border-0"><td className="p-4 font-medium text-heading">{post.title}<span className="mt-1 block text-xs font-normal text-muted">/{post.slug}</span></td><td className="p-4 text-muted">{post.status}</td><td className="p-4 text-muted">{new Date(post.updatedAt).toLocaleDateString()}</td><td className="p-4"><div className="flex justify-end gap-3"><button onClick={() => startEditing({ ...post, originalSlug: post.slug })} className="text-accent">Edit</button><button onClick={() => remove(post)} className="text-red-600 dark:text-red-400">Delete</button></div></td></tr>)}</tbody>
+            <tbody>{data.posts.map((post) => <tr key={post.id} className="border-b border-border last:border-0"><td className="p-4 font-medium text-heading">{post.title}<span className="mt-1 block text-xs font-normal text-muted">/{post.slug}</span></td><td className="p-4 text-muted">{post.status}{post.scheduledAt && <span className="mt-1 block text-xs">{new Date(post.scheduledAt).toLocaleString()}</span>}</td><td className="p-4 text-muted">{new Date(post.updatedAt).toLocaleDateString()}</td><td className="p-4"><div className="flex justify-end gap-3"><button onClick={() => startEditing({ ...post, originalSlug: post.slug })} className="text-accent">Edit</button><button onClick={() => remove(post)} className="text-red-600 dark:text-red-400">Delete</button></div></td></tr>)}</tbody>
           </table>
         )}
       </div>
@@ -199,8 +208,9 @@ function PostEditor({ post, saving, onSubmit, onCancel, onDirtyChange }) {
       )}
     </div>
     <Field label="Tags (comma separated)" name="tags" value={values.tags} onChange={change('tags')} />
-    <label className="block text-sm font-medium text-heading">Status<select name="status" value={values.status} onChange={change('status')} className="mt-2 block rounded-lg border border-border bg-background px-3 py-2 text-heading"><option value="DRAFT">Draft</option><option value="PUBLISHED">Published</option></select></label>
-    <p className="text-sm text-muted">Changing a draft to Published queues one email for every current subscriber.</p>
+    <label className="block text-sm font-medium text-heading">Status<select name="status" value={values.status} onChange={change('status')} className="mt-2 block rounded-lg border border-border bg-background px-3 py-2 text-heading"><option value="DRAFT">Draft</option><option value="SCHEDULED">Scheduled</option><option value="PUBLISHED">Published</option></select></label>
+    {values.status === 'SCHEDULED' && <label className="block text-sm font-medium text-heading">Publish date and time<input type="datetime-local" name="scheduledAt" value={values.scheduledAt} onChange={change('scheduledAt')} min={toLocalDateTime(new Date())} required className="mt-2 block rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>}
+    <p className="text-sm text-muted">Publishing now or at the scheduled time queues one email for every current subscriber.</p>
     <div className="flex gap-3"><button disabled={saving} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60">{saving ? 'Saving…' : 'Save post'}</button><button type="button" onClick={cancel} className="rounded-lg border border-border px-4 py-2.5 text-sm text-heading">Cancel</button></div>
   </form>
 }
