@@ -7,6 +7,28 @@ import MarkdownContent from '../components/blog/MarkdownContent'
 import CoverImage from '../components/blog/CoverImage'
 
 const emptyPost = { slug: '', title: '', summary: '', content: '', coverImageUrl: '', coverImageAlt: '', status: 'DRAFT', tags: [] }
+const AUTOSAVE_DELAY_MS = 500
+
+function draftKey(post) {
+  return `admin-post-draft:${post.originalSlug ?? 'new'}`
+}
+
+function postValues(post) {
+  return {
+    title: post.title, slug: post.slug, summary: post.summary, content: post.content,
+    coverImageUrl: post.coverImageUrl ?? '', coverImageAlt: post.coverImageAlt ?? '',
+    tags: post.tags.map((tag) => tag.name).join(', '), status: post.status,
+  }
+}
+
+function loadAutosave(post) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(draftKey(post)))
+    return saved?.values ? saved.values : null
+  } catch {
+    return null
+  }
+}
 
 function Admin() {
   useDocumentMeta({ title: 'Admin — otabek.dev' })
@@ -15,6 +37,13 @@ function Admin() {
   const [editing, setEditing] = useState(null)
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState('')
+  const [editorDirty, setEditorDirty] = useState(false)
+
+  function startEditing(post) {
+    if (editorDirty && !window.confirm('Discard your unsaved changes?')) return
+    setEditorDirty(false)
+    setEditing(post)
+  }
 
   function refresh() {
     setDashboard((current) => ({ ...current, status: 'loading', message: '' }))
@@ -50,6 +79,8 @@ function Admin() {
     }
     try {
       await saveAdminPost(editing?.originalSlug ?? null, details)
+      localStorage.removeItem(draftKey(editing))
+      setEditorDirty(false)
       setEditing(null); setNotice(details.status === 'PUBLISHED' ? 'Post saved. New subscribers are being emailed.' : 'Draft saved.')
       await refresh()
     } catch (error) { setNotice(error.message) } finally { setSaving(false) }
@@ -67,7 +98,7 @@ function Admin() {
     <section className="mx-auto max-w-5xl">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div><p className="text-sm font-medium text-accent">Administration</p><h1 className="text-3xl font-bold text-heading">Publishing dashboard</h1></div>
-        <button onClick={() => setEditing({ ...emptyPost, originalSlug: null })} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white">New post</button>
+        <button onClick={() => startEditing({ ...emptyPost, originalSlug: null })} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white">New post</button>
       </div>
       <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Metric label="Published" value={data.publishedPosts} /><Metric label="Drafts" value={data.draftPosts} />
@@ -75,11 +106,11 @@ function Admin() {
         <Metric label="Email failures" value={data.failedDeliveries} />
       </dl>
       {notice && <p role="status" className="mt-6 rounded-lg border border-border bg-surface p-3 text-sm text-heading">{notice}</p>}
-      {editing && <PostEditor post={editing} saving={saving} onSubmit={submit} onCancel={() => setEditing(null)} />}
+      {editing && <PostEditor key={editing.originalSlug ?? 'new'} post={editing} saving={saving} onSubmit={submit} onDirtyChange={setEditorDirty} onCancel={() => { setEditorDirty(false); setEditing(null) }} />}
       <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-surface">
         {data.posts.length === 0 ? <p className="p-6 text-sm text-muted">No posts yet.</p> : (
           <table className="w-full text-left text-sm"><thead className="border-b border-border text-muted"><tr><th className="p-4">Title</th><th className="p-4">Status</th><th className="p-4">Updated</th><th className="p-4"><span className="sr-only">Actions</span></th></tr></thead>
-            <tbody>{data.posts.map((post) => <tr key={post.id} className="border-b border-border last:border-0"><td className="p-4 font-medium text-heading">{post.title}<span className="mt-1 block text-xs font-normal text-muted">/{post.slug}</span></td><td className="p-4 text-muted">{post.status}</td><td className="p-4 text-muted">{new Date(post.updatedAt).toLocaleDateString()}</td><td className="p-4"><div className="flex justify-end gap-3"><button onClick={() => setEditing({ ...post, originalSlug: post.slug })} className="text-accent">Edit</button><button onClick={() => remove(post)} className="text-red-600 dark:text-red-400">Delete</button></div></td></tr>)}</tbody>
+            <tbody>{data.posts.map((post) => <tr key={post.id} className="border-b border-border last:border-0"><td className="p-4 font-medium text-heading">{post.title}<span className="mt-1 block text-xs font-normal text-muted">/{post.slug}</span></td><td className="p-4 text-muted">{post.status}</td><td className="p-4 text-muted">{new Date(post.updatedAt).toLocaleDateString()}</td><td className="p-4"><div className="flex justify-end gap-3"><button onClick={() => startEditing({ ...post, originalSlug: post.slug })} className="text-accent">Edit</button><button onClick={() => remove(post)} className="text-red-600 dark:text-red-400">Delete</button></div></td></tr>)}</tbody>
           </table>
         )}
       </div>
@@ -89,19 +120,64 @@ function Admin() {
 
 function Metric({ label, value }) { return <div className="rounded-xl border border-border bg-surface p-4"><dt className="text-xs uppercase tracking-wide text-muted">{label}</dt><dd className="mt-2 text-2xl font-bold text-heading">{value}</dd></div> }
 
-function PostEditor({ post, saving, onSubmit, onCancel }) {
+function PostEditor({ post, saving, onSubmit, onCancel, onDirtyChange }) {
+  const [initial] = useState(() => {
+    const server = postValues(post)
+    return { server, recovered: loadAutosave(post) }
+  })
+  const [values, setValues] = useState(() => initial.recovered ?? initial.server)
   const [editorMode, setEditorMode] = useState('write')
-  const [content, setContent] = useState(post.content)
-  const [coverImageUrl, setCoverImageUrl] = useState(post.coverImageUrl ?? '')
-  const [coverImageAlt, setCoverImageAlt] = useState(post.coverImageAlt ?? '')
+  const [autosaveStatus, setAutosaveStatus] = useState(initial.recovered ? 'Recovered locally saved changes.' : '')
+  const dirty = JSON.stringify(values) !== JSON.stringify(initial.server)
+
+  useEffect(() => {
+    onDirtyChange(dirty)
+    if (!dirty) return
+    const timer = window.setTimeout(() => {
+      localStorage.setItem(draftKey(post), JSON.stringify({ values, savedAt: new Date().toISOString() }))
+      setAutosaveStatus('Changes saved locally.')
+    }, AUTOSAVE_DELAY_MS)
+    return () => window.clearTimeout(timer)
+  }, [dirty, onDirtyChange, post, values])
+
+  useEffect(() => {
+    const warnBeforeUnload = (event) => {
+      if (!dirty) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    const warnBeforeNavigation = (event) => {
+      const link = event.target.closest?.('a[href]')
+      if (!dirty || !link || link.target === '_blank' || event.defaultPrevented) return
+      if (!window.confirm('Leave this page? Your changes are saved locally but not published.')) event.preventDefault()
+    }
+    window.addEventListener('beforeunload', warnBeforeUnload)
+    document.addEventListener('click', warnBeforeNavigation, true)
+    return () => {
+      window.removeEventListener('beforeunload', warnBeforeUnload)
+      document.removeEventListener('click', warnBeforeNavigation, true)
+    }
+  }, [dirty])
+
+  const change = (name) => (event) => {
+    setAutosaveStatus('Saving locally…')
+    setValues((current) => ({ ...current, [name]: event.target.value }))
+  }
+
+  const cancel = () => {
+    if (dirty && !window.confirm('Discard your unsaved changes?')) return
+    localStorage.removeItem(draftKey(post))
+    onCancel()
+  }
 
   return <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-border bg-surface p-6">
     <h2 className="text-xl font-semibold text-heading">{post.originalSlug ? 'Edit post' : 'New post'}</h2>
-    <Field label="Title" name="title" defaultValue={post.title} maxLength="200" />
-    <Field label="Slug" name="slug" defaultValue={post.slug} maxLength="160" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
-    <label className="block text-sm font-medium text-heading">Summary<textarea name="summary" required maxLength="500" defaultValue={post.summary} rows="3" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
-    <label className="block text-sm font-medium text-heading">Cover image URL (optional)<input type="url" name="coverImageUrl" value={coverImageUrl} onChange={(event) => setCoverImageUrl(event.target.value)} maxLength="2048" required={Boolean(coverImageAlt.trim())} placeholder="https://example.com/cover.jpg" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
-    <label className="block text-sm font-medium text-heading">Cover image alt text<input name="coverImageAlt" value={coverImageAlt} onChange={(event) => setCoverImageAlt(event.target.value)} maxLength="300" required={Boolean(coverImageUrl.trim())} placeholder="Describe the image for screen readers" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
+    {autosaveStatus && <p role="status" className="text-sm text-muted">{autosaveStatus}</p>}
+    <Field label="Title" name="title" value={values.title} onChange={change('title')} maxLength="200" />
+    <Field label="Slug" name="slug" value={values.slug} onChange={change('slug')} maxLength="160" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
+    <label className="block text-sm font-medium text-heading">Summary<textarea name="summary" required maxLength="500" value={values.summary} onChange={change('summary')} rows="3" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
+    <label className="block text-sm font-medium text-heading">Cover image URL (optional)<input type="url" name="coverImageUrl" value={values.coverImageUrl} onChange={change('coverImageUrl')} maxLength="2048" required={Boolean(values.coverImageAlt.trim())} placeholder="https://example.com/cover.jpg" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
+    <label className="block text-sm font-medium text-heading">Cover image alt text<input name="coverImageAlt" value={values.coverImageAlt} onChange={change('coverImageAlt')} maxLength="300" required={Boolean(values.coverImageUrl.trim())} placeholder="Describe the image for screen readers" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
     <div>
       <div className="flex items-center justify-between gap-4">
         <span className="text-sm font-medium text-heading">Content (Markdown)</span>
@@ -111,21 +187,21 @@ function PostEditor({ post, saving, onSubmit, onCancel }) {
         </div>
       </div>
       {editorMode === 'write' ? (
-        <textarea aria-label="Content (Markdown)" name="content" required value={content} onChange={(event) => setContent(event.target.value)} rows="16" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm text-heading" />
+        <textarea aria-label="Content (Markdown)" name="content" required value={values.content} onChange={change('content')} rows="16" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm text-heading" />
       ) : (
         <>
-          <input type="hidden" name="content" value={content} />
+          <input type="hidden" name="content" value={values.content} />
           <div aria-label="Post preview" className="mt-2 min-h-96 rounded-lg border border-border bg-background p-5">
-            <CoverImage src={coverImageUrl.trim()} alt={coverImageAlt.trim()} className="mb-6 aspect-video w-full rounded-lg object-cover" />
-            {content.trim() ? <MarkdownContent>{content}</MarkdownContent> : <p className="text-sm text-muted">Start writing to see a preview.</p>}
+            <CoverImage src={values.coverImageUrl.trim()} alt={values.coverImageAlt.trim()} className="mb-6 aspect-video w-full rounded-lg object-cover" />
+            {values.content.trim() ? <MarkdownContent>{values.content}</MarkdownContent> : <p className="text-sm text-muted">Start writing to see a preview.</p>}
           </div>
         </>
       )}
     </div>
-    <Field label="Tags (comma separated)" name="tags" defaultValue={post.tags.map((tag) => tag.name).join(', ')} />
-    <label className="block text-sm font-medium text-heading">Status<select name="status" defaultValue={post.status} className="mt-2 block rounded-lg border border-border bg-background px-3 py-2 text-heading"><option value="DRAFT">Draft</option><option value="PUBLISHED">Published</option></select></label>
+    <Field label="Tags (comma separated)" name="tags" value={values.tags} onChange={change('tags')} />
+    <label className="block text-sm font-medium text-heading">Status<select name="status" value={values.status} onChange={change('status')} className="mt-2 block rounded-lg border border-border bg-background px-3 py-2 text-heading"><option value="DRAFT">Draft</option><option value="PUBLISHED">Published</option></select></label>
     <p className="text-sm text-muted">Changing a draft to Published queues one email for every current subscriber.</p>
-    <div className="flex gap-3"><button disabled={saving} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60">{saving ? 'Saving…' : 'Save post'}</button><button type="button" onClick={onCancel} className="rounded-lg border border-border px-4 py-2.5 text-sm text-heading">Cancel</button></div>
+    <div className="flex gap-3"><button disabled={saving} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60">{saving ? 'Saving…' : 'Save post'}</button><button type="button" onClick={cancel} className="rounded-lg border border-border px-4 py-2.5 text-sm text-heading">Cancel</button></div>
   </form>
 }
 

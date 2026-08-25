@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Admin from './Admin'
 import { AuthContext } from '../auth/auth-context'
@@ -13,6 +13,8 @@ const dashboard = {
 }
 
 describe('Admin dashboard', () => {
+  beforeEach(() => localStorage.clear())
+
   it('shows metrics and saves a draft', async () => {
     const loadDashboard = vi.fn().mockResolvedValue(dashboard)
     const saveAdminPost = vi.fn().mockResolvedValue({})
@@ -46,5 +48,42 @@ describe('Admin dashboard', () => {
       tags: [{ name: 'React', slug: 'react' }, { name: 'Testing', slug: 'testing' }],
     }))
     expect(await screen.findByRole('status')).toHaveTextContent('Draft saved')
+  })
+
+  it('autosaves locally, restores changes, and warns before discarding them', async () => {
+    const loadDashboard = vi.fn().mockResolvedValue(dashboard)
+    const auth = {
+      user: { roles: ['USER', 'ADMIN'] }, isLoading: false, loadDashboard,
+      saveAdminPost: vi.fn(), deleteAdminPost: vi.fn(),
+    }
+    const view = render(<MemoryRouter><AuthContext.Provider value={auth}><Admin /></AuthContext.Provider></MemoryRouter>)
+    const user = userEvent.setup()
+
+    await screen.findByRole('heading', { name: 'Publishing dashboard' })
+    await user.click(screen.getByRole('button', { name: 'New post' }))
+    await user.type(screen.getByLabelText('Title'), 'Recovered draft')
+
+    await waitFor(() => expect(localStorage.getItem('admin-post-draft:new')).toContain('Recovered draft'))
+    expect(screen.getByRole('status')).toHaveTextContent('Changes saved locally.')
+    const beforeUnload = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(beforeUnload)
+    expect(beforeUnload.defaultPrevented).toBe(true)
+
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.getByRole('heading', { name: 'New post' })).toBeInTheDocument()
+    expect(confirm).toHaveBeenCalledWith('Discard your unsaved changes?')
+
+    view.unmount()
+    render(<MemoryRouter><AuthContext.Provider value={auth}><Admin /></AuthContext.Provider></MemoryRouter>)
+    await screen.findByRole('heading', { name: 'Publishing dashboard' })
+    await user.click(screen.getByRole('button', { name: 'New post' }))
+    expect(screen.getByLabelText('Title')).toHaveValue('Recovered draft')
+    expect(screen.getByRole('status')).toHaveTextContent('Recovered locally saved changes.')
+
+    confirm.mockReturnValue(true)
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('heading', { name: 'New post' })).not.toBeInTheDocument()
+    expect(localStorage.getItem('admin-post-draft:new')).toBeNull()
   })
 })
