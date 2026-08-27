@@ -44,3 +44,11 @@ export async function deletePost(slug, csrf) {
     method: 'DELETE', credentials: 'include', headers: { [csrf.headerName]: csrf.token },
   }))
 }
+
+export async function uploadImage(file, csrf) {
+  const body = new FormData()
+  body.append('file', file)
+  return parse(await fetch(url('/dashboard/media'), {
+    method: 'POST', credentials: 'include', headers: { [csrf.headerName]: csrf.token }, body,
+  }))
+}

@@ -39,7 +39,7 @@ function loadAutosave(post) {
 
 function Admin() {
   useDocumentMeta({ title: 'Admin — otabek.dev' })
-  const { user, isLoading, loadDashboard, saveAdminPost, deleteAdminPost } = useAuth()
+  const { user, isLoading, loadDashboard, saveAdminPost, deleteAdminPost, uploadAdminImage } = useAuth()
   const [dashboard, setDashboard] = useState({ status: 'loading', data: null, message: '' })
   const [editing, setEditing] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -115,7 +115,7 @@ function Admin() {
         <Metric label="Email failures" value={data.failedDeliveries} />
       </dl>
       {notice && <p role="status" className="mt-6 rounded-lg border border-border bg-surface p-3 text-sm text-heading">{notice}</p>}
-      {editing && <PostEditor key={editing.originalSlug ?? 'new'} post={editing} saving={saving} onSubmit={submit} onDirtyChange={setEditorDirty} onCancel={() => { setEditorDirty(false); setEditing(null) }} />}
+      {editing && <PostEditor key={editing.originalSlug ?? 'new'} post={editing} saving={saving} onSubmit={submit} onUploadImage={uploadAdminImage} onDirtyChange={setEditorDirty} onCancel={() => { setEditorDirty(false); setEditing(null) }} />}
       <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-surface">
         {data.posts.length === 0 ? <p className="p-6 text-sm text-muted">No posts yet.</p> : (
           <table className="w-full text-left text-sm"><thead className="border-b border-border text-muted"><tr><th className="p-4">Title</th><th className="p-4">Status</th><th className="p-4">Updated</th><th className="p-4"><span className="sr-only">Actions</span></th></tr></thead>
@@ -129,7 +129,7 @@ function Admin() {
 
 function Metric({ label, value }) { return <div className="rounded-xl border border-border bg-surface p-4"><dt className="text-xs uppercase tracking-wide text-muted">{label}</dt><dd className="mt-2 text-2xl font-bold text-heading">{value}</dd></div> }
 
-function PostEditor({ post, saving, onSubmit, onCancel, onDirtyChange }) {
+function PostEditor({ post, saving, onSubmit, onCancel, onDirtyChange, onUploadImage }) {
   const [initial] = useState(() => {
     const server = postValues(post)
     return { server, recovered: loadAutosave(post) }
@@ -137,6 +137,7 @@ function PostEditor({ post, saving, onSubmit, onCancel, onDirtyChange }) {
   const [values, setValues] = useState(() => initial.recovered ?? initial.server)
   const [editorMode, setEditorMode] = useState('write')
   const [autosaveStatus, setAutosaveStatus] = useState(initial.recovered ? 'Recovered locally saved changes.' : '')
+  const [upload, setUpload] = useState({ status: 'idle', message: '' })
   const dirty = JSON.stringify(values) !== JSON.stringify(initial.server)
 
   useEffect(() => {
@@ -179,13 +180,36 @@ function PostEditor({ post, saving, onSubmit, onCancel, onDirtyChange }) {
     onCancel()
   }
 
+  const uploadCover = async (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setUpload({ status: 'uploading', message: 'Uploading image…' })
+    try {
+      const uploaded = await onUploadImage(file)
+      setValues((current) => ({ ...current, coverImageUrl: uploaded.url }))
+      setAutosaveStatus('Saving locally…')
+      setUpload({ status: 'ready', message: 'Image uploaded.' })
+    } catch (error) {
+      setUpload({ status: 'error', message: error.message })
+    } finally {
+      event.target.value = ''
+    }
+  }
+
   return <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-border bg-surface p-6">
     <h2 className="text-xl font-semibold text-heading">{post.originalSlug ? 'Edit post' : 'New post'}</h2>
     {autosaveStatus && <p role="status" className="text-sm text-muted">{autosaveStatus}</p>}
     <Field label="Title" name="title" value={values.title} onChange={change('title')} maxLength="200" />
     <Field label="Slug" name="slug" value={values.slug} onChange={change('slug')} maxLength="160" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
     <label className="block text-sm font-medium text-heading">Summary<textarea name="summary" required maxLength="500" value={values.summary} onChange={change('summary')} rows="3" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
-    <label className="block text-sm font-medium text-heading">Cover image URL (optional)<input type="url" name="coverImageUrl" value={values.coverImageUrl} onChange={change('coverImageUrl')} maxLength="2048" required={Boolean(values.coverImageAlt.trim())} placeholder="https://example.com/cover.jpg" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
+    <div className="rounded-lg border border-border bg-background p-4">
+      <label className="block text-sm font-medium text-heading">Upload cover image
+        <input type="file" accept="image/jpeg,image/png,image/gif" onChange={uploadCover} disabled={upload.status === 'uploading'} className="mt-2 block w-full text-sm text-muted file:mr-4 file:rounded-md file:border-0 file:bg-accent file:px-3 file:py-2 file:text-sm file:font-medium file:text-white disabled:opacity-60" />
+      </label>
+      <p className="mt-2 text-xs text-muted">JPEG, PNG, or GIF; maximum 5 MB and 6000 × 6000 pixels.</p>
+      {upload.message && <p role="status" className={`mt-2 text-sm ${upload.status === 'error' ? 'text-red-600 dark:text-red-400' : 'text-muted'}`}>{upload.message}</p>}
+    </div>
+    <label className="block text-sm font-medium text-heading">Cover image URL (optional)<input type="url" name="coverImageUrl" value={values.coverImageUrl} onChange={change('coverImageUrl')} maxLength="2048" required={Boolean(values.coverImageAlt.trim())} placeholder="Upload an image or paste an HTTPS URL" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
     <label className="block text-sm font-medium text-heading">Cover image alt text<input name="coverImageAlt" value={values.coverImageAlt} onChange={change('coverImageAlt')} maxLength="300" required={Boolean(values.coverImageUrl.trim())} placeholder="Describe the image for screen readers" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
     <div>
       <div className="flex items-center justify-between gap-4">
