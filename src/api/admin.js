@@ -52,3 +52,9 @@ export async function uploadImage(file, csrf) {
     method: 'POST', credentials: 'include', headers: { [csrf.headerName]: csrf.token }, body,
   }))
 }
+
+export async function deleteImage(id, csrf) {
+  return parse(await fetch(url(`/dashboard/media/${encodeURIComponent(id)}`), {
+    method: 'DELETE', credentials: 'include', headers: { [csrf.headerName]: csrf.token },
+  }))
+}

@@ -69,7 +69,7 @@ function PostPage() {
         </div>
       </header>
       <CoverImage src={post.coverImageUrl} alt={post.coverImageAlt} className="mb-8 aspect-video w-full rounded-xl object-cover" />
-      <MarkdownContent>{post.content}</MarkdownContent>
+      <MarkdownContent tableOfContents>{post.content}</MarkdownContent>
       <Comments slug={slug} />
     </article>
   )

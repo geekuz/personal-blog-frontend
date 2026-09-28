@@ -16,7 +16,7 @@ import {
 } from '../api/auth'
 import { AuthContext } from './auth-context'
 import { createComment, deleteComment } from '../api/posts'
-import { deletePost, getDashboard, savePost, uploadImage } from '../api/admin'
+import { deleteImage, deletePost, getDashboard, savePost, uploadImage } from '../api/admin'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -123,6 +123,9 @@ export function AuthProvider({ children }) {
   const uploadAdminImage = useCallback(async (file) => (
     uploadImage(file, await ensureCsrf())
   ), [ensureCsrf])
+  const deleteAdminImage = useCallback(async (id) => {
+    await deleteImage(id, await ensureCsrf())
+  }, [ensureCsrf])
 
   return (
     <AuthContext.Provider value={{
@@ -130,7 +133,7 @@ export function AuthProvider({ children }) {
       forgotPassword, resetPassword, changePassword,
       newsletterStatus, subscribeNewsletter, unsubscribeNewsletter,
       addComment, removeComment,
-      loadDashboard, saveAdminPost, deleteAdminPost, uploadAdminImage,
+      loadDashboard, saveAdminPost, deleteAdminPost, uploadAdminImage, deleteAdminImage,
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import CoverImage from './CoverImage'
+import MarkdownContent from './MarkdownContent'
 import PostCard from './PostCard'
 import SearchBar from './SearchBar'
 import TagFilter from './TagFilter'
@@ -51,5 +52,22 @@ describe('blog components', () => {
     rerender(<TagFilter tags={['react']} activeTag={null} onSelect={onSelect} />)
     await user.click(screen.getByRole('button', { name: '#react' }))
     expect(onSelect).toHaveBeenCalledWith('react')
+  })
+
+  it('highlights and copies code while linking headings in a generated table of contents', async () => {
+    const user = userEvent.setup()
+    const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined)
+
+    render(<MarkdownContent tableOfContents>{`## Install\n\n### Run it\n\n\`\`\`js\nconst ready = true\n\`\`\``}</MarkdownContent>)
+
+    const contents = screen.getByRole('navigation', { name: 'Table of contents' })
+    expect(contents).toHaveTextContent('Install')
+    expect(contents).toHaveTextContent('Run it')
+    expect(within(contents).getByRole('link', { name: 'Install' })).toHaveAttribute('href', '#post-install')
+    expect(document.querySelector('code')).toHaveClass('hljs', 'language-js')
+
+    await user.click(screen.getByRole('button', { name: 'Copy code' }))
+    expect(writeText).toHaveBeenCalledWith('const ready = true')
+    expect(screen.getByRole('button', { name: 'Copied!' })).toBeInTheDocument()
   })
 })

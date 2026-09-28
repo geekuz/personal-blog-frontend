@@ -7,6 +7,9 @@ import { AuthContext } from '../auth/auth-context'
 
 const dashboard = {
   publishedPosts: 2, draftPosts: 1, scheduledPosts: 0, subscribers: 7, pendingDeliveries: 3, failedDeliveries: 0,
+  media: [{ id: 'media-1', url: 'https://media.example.com/personal-blog/apple.png', publicId: 'personal-blog/apple.png',
+    originalFilename: 'apple.png', contentType: 'image/png', sizeBytes: 2048, width: 1200, height: 630,
+    createdAt: '2026-09-28T12:00:00Z' }],
   posts: [{ id: '1', slug: 'hello-world', title: 'Hello world', summary: 'Summary', content: '# Hello',
     coverImageUrl: null, coverImageAlt: null, status: 'PUBLISHED', scheduledAt: null, updatedAt: '2026-08-21T12:00:00Z',
     tags: [{ name: 'Java', slug: 'java' }] }],
@@ -66,6 +69,29 @@ describe('Admin dashboard', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('Image must be 5 MB or smaller')
     expect(uploadAdminImage).not.toHaveBeenCalled()
+  })
+
+  it('reuses and safely deletes catalog images', async () => {
+    const loadDashboard = vi.fn().mockResolvedValue(dashboard)
+    const deleteAdminImage = vi.fn().mockResolvedValue(null)
+    render(<MemoryRouter><AuthContext.Provider value={{
+      user: { roles: ['ADMIN'] }, isLoading: false, loadDashboard,
+      saveAdminPost: vi.fn(), deleteAdminPost: vi.fn(), uploadAdminImage: vi.fn(), deleteAdminImage,
+    }}><Admin /></AuthContext.Provider></MemoryRouter>)
+    const user = userEvent.setup()
+
+    await screen.findByRole('heading', { name: 'Publishing dashboard' })
+    await user.click(screen.getByRole('button', { name: 'New post' }))
+    expect(screen.getByRole('heading', { name: 'Media library' })).toBeInTheDocument()
+    expect(screen.getByText('apple.png')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Use apple.png' }))
+    expect(screen.getByLabelText('Cover image URL (optional)')).toHaveValue(dashboard.media[0].url)
+
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    await user.click(screen.getByRole('button', { name: 'Delete apple.png' }))
+    await waitFor(() => expect(deleteAdminImage).toHaveBeenCalledWith('media-1'))
+    expect(screen.queryByText('apple.png')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Cover image URL (optional)')).toHaveValue('')
   })
 
   it('autosaves locally, restores changes, and warns before discarding them', async () => {

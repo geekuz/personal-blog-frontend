@@ -9,6 +9,7 @@ Published posts and tags come from the Spring Boot API; styling is Tailwind CSS.
 - **React Router** — client-side routing (`/`, `/about`, `/blog/:slug`, 404)
 - **Tailwind CSS v4** + `@tailwindcss/typography` — styling and post body `prose`
 - **react-markdown** + **remark-gfm** — render Markdown post bodies
+- **rehype-highlight** + **rehype-slug** — syntax-highlighted code and stable heading links
 
 ## Run locally
 
@@ -42,7 +43,9 @@ The frontend expects the API contract documented in
 post detail requests, loading states, retries, and API errors are already wired.
 
 Posts are authored and stored as Markdown source by the backend. The frontend
-renders the `content` field using GitHub-flavored Markdown.
+renders the `content` field using GitHub-flavored Markdown. Programming posts
+include syntax highlighting, copyable code blocks, stable heading links, and an
+automatic table of contents when at least two section headings are present.
 
 ## Project structure
 

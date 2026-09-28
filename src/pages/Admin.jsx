@@ -40,7 +40,7 @@ function loadAutosave(post) {
 
 function Admin() {
   useDocumentMeta({ title: 'Admin — otabek.dev' })
-  const { user, isLoading, loadDashboard, saveAdminPost, deleteAdminPost, uploadAdminImage } = useAuth()
+  const { user, isLoading, loadDashboard, saveAdminPost, deleteAdminPost, uploadAdminImage, deleteAdminImage } = useAuth()
   const [dashboard, setDashboard] = useState({ status: 'loading', data: null, message: '' })
   const [editing, setEditing] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -103,6 +103,23 @@ function Admin() {
     catch (error) { setNotice(error.message) }
   }
 
+  async function uploadImage(file) {
+    const uploaded = await uploadAdminImage(file)
+    setDashboard((current) => ({
+      ...current,
+      data: { ...current.data, media: [uploaded, ...(current.data?.media ?? [])] },
+    }))
+    return uploaded
+  }
+
+  async function removeImage(id) {
+    await deleteAdminImage(id)
+    setDashboard((current) => ({
+      ...current,
+      data: { ...current.data, media: (current.data?.media ?? []).filter((asset) => asset.id !== id) },
+    }))
+  }
+
   const data = dashboard.data
   return (
     <section className="mx-auto max-w-5xl">
@@ -116,7 +133,7 @@ function Admin() {
         <Metric label="Email failures" value={data.failedDeliveries} />
       </dl>
       {notice && <p role="status" className="mt-6 rounded-lg border border-border bg-surface p-3 text-sm text-heading">{notice}</p>}
-      {editing && <PostEditor key={editing.originalSlug ?? 'new'} post={editing} saving={saving} onSubmit={submit} onUploadImage={uploadAdminImage} onDirtyChange={setEditorDirty} onCancel={() => { setEditorDirty(false); setEditing(null) }} />}
+      {editing && <PostEditor key={editing.originalSlug ?? 'new'} post={editing} saving={saving} media={data.media ?? []} onSubmit={submit} onUploadImage={uploadImage} onDeleteImage={removeImage} onDirtyChange={setEditorDirty} onCancel={() => { setEditorDirty(false); setEditing(null) }} />}
       <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-surface">
         {data.posts.length === 0 ? <p className="p-6 text-sm text-muted">No posts yet.</p> : (
           <table className="w-full text-left text-sm"><thead className="border-b border-border text-muted"><tr><th className="p-4">Title</th><th className="p-4">Status</th><th className="p-4">Updated</th><th className="p-4"><span className="sr-only">Actions</span></th></tr></thead>
@@ -130,7 +147,7 @@ function Admin() {
 
 function Metric({ label, value }) { return <div className="rounded-xl border border-border bg-surface p-4"><dt className="text-xs uppercase tracking-wide text-muted">{label}</dt><dd className="mt-2 text-2xl font-bold text-heading">{value}</dd></div> }
 
-function PostEditor({ post, saving, onSubmit, onCancel, onDirtyChange, onUploadImage }) {
+function PostEditor({ post, saving, media, onSubmit, onCancel, onDirtyChange, onUploadImage, onDeleteImage }) {
   const [initial] = useState(() => {
     const server = postValues(post)
     return { server, recovered: loadAutosave(post) }
@@ -202,6 +219,27 @@ function PostEditor({ post, saving, onSubmit, onCancel, onDirtyChange, onUploadI
     }
   }
 
+  const useImage = (asset) => {
+    setValues((current) => ({ ...current, coverImageUrl: asset.url }))
+    setAutosaveStatus('Saving locally…')
+    setUpload({ status: 'ready', message: `Using ${asset.originalFilename}.` })
+  }
+
+  const removeImage = async (asset) => {
+    if (!window.confirm(`Delete “${asset.originalFilename}” from media storage?`)) return
+    setUpload({ status: 'deleting', message: `Deleting ${asset.originalFilename}…` })
+    try {
+      await onDeleteImage(asset.id)
+      if (values.coverImageUrl === asset.url) {
+        setValues((current) => ({ ...current, coverImageUrl: '' }))
+        setAutosaveStatus('Saving locally…')
+      }
+      setUpload({ status: 'ready', message: 'Image deleted.' })
+    } catch (error) {
+      setUpload({ status: 'error', message: error.message })
+    }
+  }
+
   return <form onSubmit={onSubmit} className="mt-8 space-y-5 rounded-xl border border-border bg-surface p-6">
     <h2 className="text-xl font-semibold text-heading">{post.originalSlug ? 'Edit post' : 'New post'}</h2>
     {autosaveStatus && <p role="status" className="text-sm text-muted">{autosaveStatus}</p>}
@@ -214,6 +252,7 @@ function PostEditor({ post, saving, onSubmit, onCancel, onDirtyChange, onUploadI
       </label>
       <p className="mt-2 text-xs text-muted">JPEG, PNG, or GIF; maximum 5 MB and 6000 × 6000 pixels.</p>
       {upload.message && <p role="status" className={`mt-2 text-sm ${upload.status === 'error' ? 'text-red-600 dark:text-red-400' : 'text-muted'}`}>{upload.message}</p>}
+      <MediaLibrary media={media} onUse={useImage} onDelete={removeImage} disabled={upload.status === 'uploading' || upload.status === 'deleting'} />
     </div>
     <label className="block text-sm font-medium text-heading">Cover image URL (optional)<input type="url" name="coverImageUrl" value={values.coverImageUrl} onChange={change('coverImageUrl')} maxLength="2048" required={Boolean(values.coverImageAlt.trim())} placeholder="Upload an image or paste an HTTPS URL" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
     <label className="block text-sm font-medium text-heading">Cover image alt text<input name="coverImageAlt" value={values.coverImageAlt} onChange={change('coverImageAlt')} maxLength="300" required={Boolean(values.coverImageUrl.trim())} placeholder="Describe the image for screen readers" className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>
@@ -243,6 +282,36 @@ function PostEditor({ post, saving, onSubmit, onCancel, onDirtyChange, onUploadI
     <p className="text-sm text-muted">Publishing now or at the scheduled time queues one email for every current subscriber.</p>
     <div className="flex gap-3"><button disabled={saving} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60">{saving ? 'Saving…' : 'Save post'}</button><button type="button" onClick={cancel} className="rounded-lg border border-border px-4 py-2.5 text-sm text-heading">Cancel</button></div>
   </form>
+}
+
+function MediaLibrary({ media, onUse, onDelete, disabled }) {
+  return <section aria-labelledby="media-library-title" className="mt-5 border-t border-border pt-4">
+    <div className="flex items-center justify-between gap-3">
+      <h3 id="media-library-title" className="text-sm font-semibold text-heading">Media library</h3>
+      <span className="text-xs text-muted">Latest {media.length} image{media.length === 1 ? '' : 's'}</span>
+    </div>
+    {media.length === 0 ? <p className="mt-3 text-sm text-muted">No uploaded images yet.</p> : (
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {media.map((asset) => <article key={asset.id} className="overflow-hidden rounded-lg border border-border bg-surface">
+          <img src={asset.url} alt="" loading="lazy" className="aspect-video w-full bg-background object-cover" />
+          <div className="p-3">
+            <p className="truncate text-sm font-medium text-heading" title={asset.originalFilename}>{asset.originalFilename}</p>
+            <p className="mt-1 text-xs text-muted">{asset.width} × {asset.height} · {formatBytes(asset.sizeBytes)}</p>
+            <div className="mt-3 flex gap-3">
+              <button type="button" disabled={disabled} onClick={() => onUse(asset)} aria-label={`Use ${asset.originalFilename}`} className="text-sm font-medium text-accent disabled:opacity-60">Use image</button>
+              <button type="button" disabled={disabled} onClick={() => onDelete(asset)} aria-label={`Delete ${asset.originalFilename}`} className="text-sm text-red-600 disabled:opacity-60 dark:text-red-400">Delete</button>
+            </div>
+          </div>
+        </article>)}
+      </div>
+    )}
+  </section>
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 function Field({ label, ...props }) { return <label className="block text-sm font-medium text-heading">{label}<input required className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-heading" {...props} /></label> }
