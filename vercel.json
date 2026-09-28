@@ -1,5 +1,24 @@
 {
   "rewrites": [
+    {
+      "source": "/feed.xml",
+      "destination": "https://personal-blog-backend-idiq.onrender.com/feed.xml"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://personal-blog-backend-idiq.onrender.com/sitemap.xml"
+    },
+    {
+      "source": "/blog/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|Discordbot|WhatsApp|LinkedInBot|redditbot|Mastodon|Embedly|SkypeUriPreview|Pinterestbot|vkShare|Iframely|Bluesky).*"
+        }
+      ],
+      "destination": "https://personal-blog-backend-idiq.onrender.com/share/blog/:slug"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

@@ -9,6 +9,15 @@ function Footer({ year = new Date().getFullYear() }) {
           © {year} Otabek. Built with React + Vite while learning. All rights
           reserved.
         </p>
+        {/* A plain <a>, not a router <Link>: the feed is served by the backend, not the SPA. */}
+        <p className="mt-2">
+          <a
+            href="/feed.xml"
+            className="underline underline-offset-4 hover:text-accent"
+          >
+            RSS feed
+          </a>
+        </p>
       </div>
     </footer>
   )

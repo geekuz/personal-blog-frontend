@@ -71,7 +71,14 @@ This is a static single-page app — any static host works.
 `/blog/my-post` resolve to `index.html`:
 
 - Netlify: add `public/_redirects` containing `/*  /index.html  200`
-- Vercel: it handles SPA fallback for Vite automatically
+- Vercel: `vercel.json` provides the SPA fallback
+
+`vercel.json` also proxies `/feed.xml` and `/sitemap.xml` to the backend and
+routes `/blog/:slug` requests from link-preview bots (Telegram, X, LinkedIn,
+Slack, …) to the backend's share page, so shared links show a title, summary,
+and cover image. Keep the fallback rule last, and update the backend URL there
+and the `Sitemap:` line in `public/robots.txt` if either domain changes. These
+paths are not proxied by `npm run dev`.
 
 ## Project planning
 

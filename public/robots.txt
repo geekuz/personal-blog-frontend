@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://personal-blog-frontend-virid.vercel.app/sitemap.xml
