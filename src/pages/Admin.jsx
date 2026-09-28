@@ -8,6 +8,7 @@ import CoverImage from '../components/blog/CoverImage'
 
 const emptyPost = { slug: '', title: '', summary: '', content: '', coverImageUrl: '', coverImageAlt: '', status: 'DRAFT', scheduledAt: '', tags: [] }
 const AUTOSAVE_DELAY_MS = 500
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
 function draftKey(post) {
   return `admin-post-draft:${post.originalSlug ?? 'new'}`
@@ -183,6 +184,11 @@ function PostEditor({ post, saving, onSubmit, onCancel, onDirtyChange, onUploadI
   const uploadCover = async (event) => {
     const file = event.target.files?.[0]
     if (!file) return
+    if (file.size > MAX_IMAGE_BYTES) {
+      setUpload({ status: 'error', message: 'Image must be 5 MB or smaller' })
+      event.target.value = ''
+      return
+    }
     setUpload({ status: 'uploading', message: 'Uploading image…' })
     try {
       const uploaded = await onUploadImage(file)

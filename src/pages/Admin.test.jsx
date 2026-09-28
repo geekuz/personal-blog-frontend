@@ -50,6 +50,24 @@ describe('Admin dashboard', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Draft saved')
   })
 
+  it('rejects oversized cover images before uploading', async () => {
+    const loadDashboard = vi.fn().mockResolvedValue(dashboard)
+    const uploadAdminImage = vi.fn()
+    render(<MemoryRouter><AuthContext.Provider value={{
+      user: { roles: ['USER', 'ADMIN'] }, isLoading: false, loadDashboard,
+      saveAdminPost: vi.fn(), deleteAdminPost: vi.fn(), uploadAdminImage,
+    }}><Admin /></AuthContext.Provider></MemoryRouter>)
+    const user = userEvent.setup()
+
+    await screen.findByRole('heading', { name: 'Publishing dashboard' })
+    await user.click(screen.getByRole('button', { name: 'New post' }))
+    const file = new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'too-large.png', { type: 'image/png' })
+    await user.upload(screen.getByLabelText('Upload cover image'), file)
+
+    expect(screen.getByRole('status')).toHaveTextContent('Image must be 5 MB or smaller')
+    expect(uploadAdminImage).not.toHaveBeenCalled()
+  })
+
   it('autosaves locally, restores changes, and warns before discarding them', async () => {
     const loadDashboard = vi.fn().mockResolvedValue(dashboard)
     const auth = {
