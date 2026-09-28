@@ -8,6 +8,7 @@ import { useDocumentMeta } from '../hooks/useDocumentMeta'
 import Comments from '../components/blog/Comments'
 import MarkdownContent from '../components/blog/MarkdownContent'
 import CoverImage from '../components/blog/CoverImage'
+import PostNavigation from '../components/blog/PostNavigation'
 
 function PostPage() {
   const { slug } = useParams()
@@ -70,6 +71,11 @@ function PostPage() {
       </header>
       <CoverImage src={post.coverImageUrl} alt={post.coverImageAlt} className="mb-8 aspect-video w-full rounded-xl object-cover" />
       <MarkdownContent tableOfContents>{post.content}</MarkdownContent>
+      <PostNavigation
+        previousPost={post.previousPost}
+        nextPost={post.nextPost}
+        relatedPosts={post.relatedPosts}
+      />
       <Comments slug={slug} />
     </article>
   )

@@ -99,6 +99,23 @@ describe('PostPage API states', () => {
     expect(screen.getByRole('heading', { name: 'Loaded content' })).toBeInTheDocument()
   })
 
+  it('links to neighbouring and related posts from the API response', async () => {
+    server.use(
+      http.get('http://localhost:8080/api/v1/posts/api-post', () => HttpResponse.json({
+        ...post,
+        content: 'Body',
+        previousPost: { slug: 'older-post', title: 'Older post title' },
+        nextPost: null,
+        relatedPosts: [{ slug: 'related-post', title: 'Related title', summary: 'Related summary' }],
+      })),
+      http.get('http://localhost:8080/api/v1/posts/api-post/comments', () => HttpResponse.json({ items: [] })),
+    )
+    renderRoute(<PostPage />, '/blog/api-post', '/blog/:slug')
+    expect(await screen.findByRole('link', { name: /older post title/i })).toHaveAttribute('href', '/blog/older-post')
+    expect(screen.queryByRole('link', { name: /newer post/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Related title' })).toHaveAttribute('href', '/blog/related-post')
+  })
+
   it('renders not found for a missing post', async () => {
     server.use(
       http.get('http://localhost:8080/api/v1/posts/missing', () => HttpResponse.json({ code: 'POST_NOT_FOUND' }, { status: 404 })),
