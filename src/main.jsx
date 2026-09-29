@@ -1,9 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
+import { analyticsBeforeSend } from './lib/analytics'
 
 // BrowserRouter turns on client-side routing for everything inside it. It reads
 // the browser's URL and lets <Routes> (defined in App) decide what to render.
@@ -14,6 +16,7 @@ createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <App />
       </AuthProvider>
+      <Analytics beforeSend={analyticsBeforeSend} />
     </BrowserRouter>
   </StrictMode>,
 )

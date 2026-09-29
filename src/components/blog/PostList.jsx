@@ -9,7 +9,7 @@ import PostCard from './PostCard'
 //     change when the list is filtered or reordered (Phase 5).
 //
 // We also handle the empty case explicitly so the UI never looks broken.
-function PostList({ posts, emptyMessage = 'No posts found.' }) {
+function PostList({ posts, query = '', emptyMessage = 'No posts found.' }) {
   if (posts.length === 0) {
     return <p className="text-muted">{emptyMessage}</p>
   }
@@ -17,7 +17,7 @@ function PostList({ posts, emptyMessage = 'No posts found.' }) {
   return (
     <div className="flex flex-col gap-5">
       {posts.map((post) => (
-        <PostCard key={post.slug} post={post} />
+        <PostCard key={post.slug} post={post} query={query} />
       ))}
     </div>
   )

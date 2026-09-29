@@ -41,6 +41,42 @@ describe('blog components', () => {
     expect(screen.getByText('#testing')).toBeInTheDocument()
   })
 
+  it('shows a search snippet with the matched words highlighted', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <PostCard
+          query="useEffect"
+          post={{
+            slug: 'hooks', title: 'Hooks notes', summary: 'Summary text',
+            tags: [], publishedAt: '2026-06-23T12:00:00Z', readingTimeMinutes: 2,
+            snippet: '…the useEffect cleanup runs first…',
+          }}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(container.querySelector('mark')).toHaveTextContent('useEffect')
+    expect(screen.getByText(/cleanup runs first/)).toBeInTheDocument()
+    expect(screen.queryByText('Summary text')).not.toBeInTheDocument()
+  })
+
+  it('falls back to the summary when a search result has no snippet', () => {
+    render(
+      <MemoryRouter>
+        <PostCard
+          query="hooks"
+          post={{
+            slug: 'hooks', title: 'Hooks notes', summary: 'Summary text',
+            tags: [], publishedAt: '2026-06-23T12:00:00Z', readingTimeMinutes: 2,
+          }}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Summary text')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Hooks notes' })).toBeInTheDocument()
+  })
+
   it('reports search input and tag selections', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
@@ -48,6 +84,7 @@ describe('blog components', () => {
     const { rerender } = render(<SearchBar value="" onChange={onChange} />)
     await user.type(screen.getByRole('searchbox'), 'r')
     expect(onChange).toHaveBeenCalledWith('r')
+    expect(screen.getByRole('searchbox')).toHaveAttribute('maxLength', '200')
 
     rerender(<TagFilter tags={['react']} activeTag={null} onSelect={onSelect} />)
     await user.click(screen.getByRole('button', { name: '#react' }))

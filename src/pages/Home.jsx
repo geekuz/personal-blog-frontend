@@ -144,6 +144,7 @@ function Home() {
         <>
           <PostList
             posts={result.items}
+            query={query}
             emptyMessage="No posts match these filters. Try another search or tag."
           />
           <Pagination

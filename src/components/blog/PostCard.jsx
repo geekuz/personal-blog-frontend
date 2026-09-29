@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { formatDate } from '../../lib/formatDate'
+import { parseSearchTerms } from '../../lib/highlight'
 import CoverImage from './CoverImage'
+import Highlight from './Highlight'
 
 // PostCard receives one `post` object via props and renders a summary card.
 // It computes the date label and reading time from the post — derived values,
@@ -8,7 +10,10 @@ import CoverImage from './CoverImage'
 //
 // The title uses a router <Link> so clicking it navigates to the post page
 // without a full page reload.
-function PostCard({ post }) {
+//
+// Search results carry a `snippet` of the body around the first match; it
+// replaces the summary so readers see why the post matched `query`.
+function PostCard({ post, query = '' }) {
   return (
     <article className="group rounded-xl border border-border p-5 transition-colors hover:border-accent">
       <CoverImage src={post.coverImageUrl} alt={post.coverImageAlt} className="mb-4 aspect-video w-full rounded-lg object-cover" />
@@ -24,7 +29,13 @@ function PostCard({ post }) {
         </Link>
       </h2>
 
-      <p className="mt-2 text-sm text-muted">{post.summary}</p>
+      {post.snippet ? (
+        <p className="mt-2 text-sm text-muted">
+          <Highlight text={post.snippet} terms={parseSearchTerms(query)} />
+        </p>
+      ) : (
+        <p className="mt-2 text-sm text-muted">{post.summary}</p>
+      )}
 
       <ul className="mt-3 flex flex-wrap gap-2">
         {post.tags.map((tag) => (
