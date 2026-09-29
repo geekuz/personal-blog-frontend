@@ -45,8 +45,11 @@ function Header() {
           <NavLink to="/projects" className={navClass}>
             Projects
           </NavLink>
-          <NavLink to="/about" className={navClass}>
+          <NavLink to="/about" className={({ isActive }) => `${navClass({ isActive })} hidden sm:block`}>
             About
+          </NavLink>
+          <NavLink to="/contact" className={navClass}>
+            Contact
           </NavLink>
           {!isLoading && (
             <NavLink to={user ? '/account' : '/login'} className={navClass}>
@@ -54,7 +57,9 @@ function Header() {
             </NavLink>
           )}
           {!isLoading && user?.roles.includes('ADMIN') && (
-            <NavLink to="/admin" className={navClass}>Admin</NavLink>
+            <NavLink to="/admin" className={({ isActive }) => `${navClass({ isActive })} hidden sm:block`}>
+              Admin
+            </NavLink>
           )}
           <ThemeToggle />
         </nav>

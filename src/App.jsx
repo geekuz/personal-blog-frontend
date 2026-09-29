@@ -10,6 +10,7 @@ const Home = lazy(() => import('./pages/Home'))
 const About = lazy(() => import('./pages/About'))
 const Projects = lazy(() => import('./pages/Projects'))
 const OtabekDevCaseStudy = lazy(() => import('./pages/OtabekDevCaseStudy'))
+const Contact = lazy(() => import('./pages/Contact'))
 const PostPage = lazy(() => import('./pages/PostPage'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const Login = lazy(() => import('./pages/Login'))
@@ -31,6 +32,7 @@ function App() {
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/otabek-dev" element={<OtabekDevCaseStudy />} />
         <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/blog/:slug" element={<PostPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

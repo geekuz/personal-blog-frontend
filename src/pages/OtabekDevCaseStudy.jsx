@@ -178,6 +178,7 @@ function OtabekDevCaseStudy() {
           <p className="mt-3 max-w-md text-xl font-medium tracking-tight text-heading">The product is live and both codebases are public.</p>
         </div>
         <div className="mt-7 flex flex-wrap gap-3 sm:mt-0">
+          <Link to="/contact" className="bg-accent px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-heading">Contact →</Link>
           <a href="https://otabek.dev" className="bg-heading px-4 py-3 text-sm font-medium text-bg transition-colors hover:bg-accent">Visit site ↗</a>
           <a href="https://github.com/geekuz/personal-blog-frontend" target="_blank" rel="noreferrer" className="border border-border px-4 py-3 text-sm font-medium text-heading transition-colors hover:border-heading">Frontend ↗</a>
           <a href="https://github.com/geekuz/personal-blog-backend" target="_blank" rel="noreferrer" className="border border-border px-4 py-3 text-sm font-medium text-heading transition-colors hover:border-heading">Backend ↗</a>
