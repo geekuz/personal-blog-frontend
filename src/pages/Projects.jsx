@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useDocumentMeta } from '../hooks/useDocumentMeta'
 
 const PROJECTS = [
@@ -9,6 +10,7 @@ const PROJECTS = [
       'A full-stack writing platform with Markdown publishing, full-text search, comments, newsletters, scheduled posts, and a private admin workspace.',
     stack: ['React 19', 'Spring Boot', 'PostgreSQL', 'Vercel'],
     accent: 'Web / Full stack',
+    caseStudy: '/projects/otabek-dev',
     links: [
       { label: 'Visit site', href: 'https://otabek.dev' },
       { label: 'Frontend', href: 'https://github.com/geekuz/personal-blog-frontend' },
@@ -90,6 +92,15 @@ function ProjectCard({ project }) {
           {project.stack.map((item) => <li key={item}>#{item.replaceAll(' ', '-').toLowerCase()}</li>)}
         </ul>
         <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3">
+          {project.caseStudy && (
+            <Link
+              to={project.caseStudy}
+              className="group inline-flex items-center gap-2 text-sm font-medium text-accent transition-colors hover:text-heading"
+            >
+              Read case study
+              <span aria-hidden="true" className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+            </Link>
+          )}
           {project.links.map((link) => (
             <a
               key={link.href}
