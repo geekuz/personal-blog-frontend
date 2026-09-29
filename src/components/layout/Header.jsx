@@ -36,11 +36,14 @@ function Header() {
         </NavLink>
         <nav
           aria-label="Main navigation"
-          className="flex items-center gap-5 text-[13px] sm:gap-7"
+          className="flex items-center gap-3 text-[13px] sm:gap-7"
         >
           {/* `end` makes "/" active only on the exact home path, not on /about */}
-          <NavLink to="/" end className={navClass}>
+          <NavLink to="/" end className={({ isActive }) => `${navClass({ isActive })} hidden sm:block`}>
             Home
+          </NavLink>
+          <NavLink to="/projects" className={navClass}>
+            Projects
           </NavLink>
           <NavLink to="/about" className={navClass}>
             About

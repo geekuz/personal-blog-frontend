@@ -6,7 +6,7 @@ Published posts and tags come from the Spring Boot API; styling is Tailwind CSS.
 ## Tech
 
 - **React 19** + **Vite** — UI and build/dev tooling
-- **React Router** — client-side routing (`/`, `/about`, `/blog/:slug`, 404)
+- **React Router** — client-side routing (`/`, `/projects`, `/about`, `/blog/:slug`, 404)
 - **Tailwind CSS v4** + `@tailwindcss/typography` — styling and post body `prose`
 - **react-markdown** + **remark-gfm** — render Markdown post bodies
 - **rehype-highlight** + **rehype-slug** — syntax-highlighted code and stable heading links

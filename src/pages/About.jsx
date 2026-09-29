@@ -22,8 +22,8 @@ function About() {
           post documents something I figured out while making this very site work.
         </p>
         <p>
-          The stack is intentionally small: React, Vite, React Router, and Tailwind
-          CSS. Posts are plain Markdown files in the repo.
+          The interface is built with React, Vite, React Router, and Tailwind CSS.
+          Posts are written in Markdown and published through a Spring Boot API.
         </p>
       </div>
       <dl className="mt-12 grid grid-cols-2 border-t border-border sm:grid-cols-4">
