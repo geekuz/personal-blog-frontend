@@ -124,8 +124,8 @@ function Admin() {
   return (
     <section className="mx-auto max-w-5xl">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div><p className="text-sm font-medium text-accent">Administration</p><h1 className="text-3xl font-bold text-heading">Publishing dashboard</h1></div>
-        <button onClick={() => startEditing({ ...emptyPost, originalSlug: null })} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white">New post</button>
+        <div><p className="eyebrow text-accent">Administration</p><h1 className="text-4xl font-semibold tracking-[-0.035em] text-heading">Publishing dashboard</h1></div>
+        <button onClick={() => startEditing({ ...emptyPost, originalSlug: null })} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90">New post</button>
       </div>
       <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
         <Metric label="Published" value={data.publishedPosts} /><Metric label="Drafts" value={data.draftPosts} />
@@ -280,7 +280,7 @@ function PostEditor({ post, saving, media, onSubmit, onCancel, onDirtyChange, on
     <label className="block text-sm font-medium text-heading">Status<select name="status" value={values.status} onChange={change('status')} className="mt-2 block rounded-lg border border-border bg-background px-3 py-2 text-heading"><option value="DRAFT">Draft</option><option value="SCHEDULED">Scheduled</option><option value="PUBLISHED">Published</option></select></label>
     {values.status === 'SCHEDULED' && <label className="block text-sm font-medium text-heading">Publish date and time<input type="datetime-local" name="scheduledAt" value={values.scheduledAt} onChange={change('scheduledAt')} min={toLocalDateTime(new Date())} required className="mt-2 block rounded-lg border border-border bg-background px-3 py-2 text-heading" /></label>}
     <p className="text-sm text-muted">Publishing now or at the scheduled time queues one email for every current subscriber.</p>
-    <div className="flex gap-3"><button disabled={saving} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60">{saving ? 'Saving…' : 'Save post'}</button><button type="button" onClick={cancel} className="rounded-lg border border-border px-4 py-2.5 text-sm text-heading">Cancel</button></div>
+    <div className="flex gap-3"><button disabled={saving} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60">{saving ? 'Saving…' : 'Save post'}</button><button type="button" onClick={cancel} className="rounded-lg border border-border px-4 py-2.5 text-sm text-heading">Cancel</button></div>
   </form>
 }
 

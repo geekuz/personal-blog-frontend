@@ -29,11 +29,11 @@ function VerifyEmail() {
 
   return (
     <section className="mx-auto max-w-md text-center">
-      <h1 className="text-3xl font-bold text-heading">
+      <h1 className="text-4xl font-semibold tracking-[-0.035em] text-heading">
         {state.status === 'success' ? 'Email verified' : 'Verification failed'}
       </h1>
       <p className="mt-4 text-muted">{state.message}</p>
-      <Link to={state.status === 'success' ? '/account' : '/login'} className="mt-8 inline-block rounded-lg bg-accent px-4 py-2.5 font-medium text-white">
+      <Link to={state.status === 'success' ? '/account' : '/login'} className="mt-8 inline-block rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90">
         {state.status === 'success' ? 'Open account' : 'Return to login'}
       </Link>
     </section>

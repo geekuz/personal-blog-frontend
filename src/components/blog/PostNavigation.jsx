@@ -27,15 +27,15 @@ function PostNavigation({ previousPost, nextPost, relatedPosts }) {
 
       {related.length > 0 && (
         <section aria-labelledby="related-posts-heading">
-          <h2 id="related-posts-heading" className="text-lg font-semibold text-heading">
+          <h2 id="related-posts-heading" className="eyebrow text-muted">
             Related posts
           </h2>
-          <ul className="mt-4 space-y-4">
+          <ul className="mt-4 border-t border-border">
             {related.map((post) => (
-              <li key={post.slug}>
+              <li key={post.slug} className="border-b border-border py-4">
                 <Link
                   to={`/blog/${post.slug}`}
-                  className="font-medium text-heading hover:text-accent"
+                  className="font-medium tracking-tight text-heading transition-colors hover:text-accent"
                 >
                   {post.title}
                 </Link>
@@ -53,10 +53,10 @@ function NeighbourLink({ post, label, className = '' }) {
   return (
     <Link
       to={`/blog/${post.slug}`}
-      className={`group block rounded-xl border border-border p-4 transition-colors hover:border-accent focus-visible:border-accent ${className}`}
+      className={`group block rounded-lg border border-border p-5 transition-colors hover:border-heading focus-visible:border-heading ${className}`}
     >
-      <span className="block text-xs uppercase tracking-wide text-muted">{label}</span>
-      <span className="mt-1 block font-medium text-heading group-hover:text-accent">
+      <span className="eyebrow block text-muted">{label}</span>
+      <span className="mt-2 block font-medium tracking-tight text-heading transition-colors group-hover:text-accent">
         {post.title}
       </span>
     </Link>

@@ -106,24 +106,33 @@ function Home() {
 
   return (
     <>
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-heading">Writing</h1>
-        <p className="mt-2 text-muted">
+      <header className="relative isolate mb-12 sm:mb-16">
+        <div
+          aria-hidden="true"
+          className="grid-texture pointer-events-none absolute -inset-x-6 -top-16 -z-10 h-80"
+        />
+        <p className="eyebrow text-accent">Index / Writing</p>
+        <h1 className="mt-5 text-5xl font-semibold tracking-[-0.045em] text-heading sm:text-7xl">
+          Writing
+        </h1>
+        <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">
           Notes on learning React by building this blog.
         </p>
       </header>
 
-      <div className="mb-8 flex flex-col gap-4">
-        <DebouncedSearchBar
-          key={query}
-          initialValue={query}
-          onCommit={commitSearch}
-        />
+      <div className="flex flex-col-reverse gap-3 border-y border-border py-3 sm:flex-row sm:items-center sm:justify-between">
         <TagFilter
           tags={tags.map((tag) => tag.slug)}
           activeTag={activeTag}
           onSelect={selectTag}
         />
+        <div className="sm:w-64">
+          <DebouncedSearchBar
+            key={query}
+            initialValue={query}
+            onCommit={commitSearch}
+          />
+        </div>
       </div>
 
       {isLoading && (

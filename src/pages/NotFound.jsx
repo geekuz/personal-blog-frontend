@@ -9,17 +9,19 @@ function NotFound() {
     description: 'The requested page could not be found.',
   })
   return (
-    <div className="py-16 text-center">
-      <p className="text-sm font-semibold text-accent">404</p>
-      <h1 className="mt-2 text-3xl font-bold text-heading">Page not found</h1>
-      <p className="mt-3 text-muted">
+    <div className="mx-auto max-w-3xl py-12 sm:py-20">
+      <p className="eyebrow text-accent">Error 404</p>
+      <h1 className="mt-5 text-5xl font-semibold tracking-[-0.045em] text-heading sm:text-7xl">
+        Page not found
+      </h1>
+      <p className="mt-5 max-w-md text-lg leading-relaxed text-muted">
         That page doesn't exist — it may have moved or never existed.
       </p>
       <Link
         to="/"
-        className="mt-6 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white"
+        className="mt-10 inline-flex h-10 items-center gap-2 rounded-md bg-heading px-5 text-sm font-medium text-bg transition-opacity hover:opacity-85"
       >
-        Back to home
+        <span aria-hidden="true">←</span> Back to home
       </Link>
     </div>
   )

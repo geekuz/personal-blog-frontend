@@ -30,14 +30,14 @@ function Login() {
 
   return (
     <section className="mx-auto max-w-md">
-      <h1 className="text-3xl font-bold text-heading">Log in</h1>
+      <h1 className="text-4xl font-semibold tracking-[-0.035em] text-heading">Log in</h1>
       <p className="mt-2 text-muted">Join the conversation and manage your subscription.</p>
       {(location.state?.message || authNotice) && <p role="status" className="mt-4 rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">{location.state?.message || authNotice}</p>}
       <form onSubmit={submit} className="mt-8 space-y-5">
         <Field label="Email" name="email" type="email" autoComplete="email" />
         <Field label="Password" name="password" type="password" autoComplete="current-password" />
         {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        <button disabled={isSubmitting} className="w-full rounded-lg bg-accent px-4 py-2.5 font-medium text-white disabled:opacity-60">
+        <button disabled={isSubmitting} className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60">
           {isSubmitting ? 'Logging in…' : 'Log in'}
         </button>
       </form>
@@ -48,7 +48,7 @@ function Login() {
 }
 
 function Field({ label, ...props }) {
-  return <label className="block text-sm font-medium text-heading">{label}<input required className="mt-2 w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-heading outline-none focus:border-accent" {...props} /></label>
+  return <label className="block text-sm font-medium text-heading">{label}<input required className="mt-2 w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm text-heading outline-none transition-colors hover:border-border-strong focus:border-heading" {...props} /></label>
 }
 
 export default Login

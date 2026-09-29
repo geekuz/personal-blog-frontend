@@ -94,7 +94,7 @@ function Account() {
 
   return (
     <section className="mx-auto max-w-xl">
-      <h1 className="text-3xl font-bold text-heading">Your account</h1>
+      <h1 className="text-4xl font-semibold tracking-[-0.035em] text-heading">Your account</h1>
       <div className="mt-8 rounded-xl border border-border bg-surface p-6">
         <p className="text-lg font-semibold text-heading">{user.displayName}</p>
         <p className="mt-1 text-sm text-muted">{user.email}</p>
@@ -149,7 +149,7 @@ function Account() {
           <PasswordField label="New password" name="newPassword" autoComplete="new-password" minLength="12" hint="At least 12 characters" />
           <PasswordField label="Confirm new password" name="confirmPassword" autoComplete="new-password" minLength="12" />
           {passwordError && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{passwordError}</p>}
-          <button disabled={isChangingPassword} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60">
+          <button disabled={isChangingPassword} className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60">
             {isChangingPassword ? 'Changing password…' : 'Change password'}
           </button>
         </form>
@@ -163,7 +163,7 @@ function PasswordField({ label, hint, ...props }) {
   return (
     <label className="block text-sm font-medium text-heading">
       {label}
-      <input required type="password" maxLength="72" className="mt-2 w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-heading outline-none focus:border-accent" {...props} />
+      <input required type="password" maxLength="72" className="mt-2 w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm text-heading outline-none transition-colors hover:border-border-strong focus:border-heading" {...props} />
       {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
     </label>
   )

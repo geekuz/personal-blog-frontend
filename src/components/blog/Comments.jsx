@@ -53,7 +53,7 @@ function Comments({ slug }) {
 
   return (
     <section aria-labelledby="comments-heading" className="mt-12 border-t border-border pt-8">
-      <h2 id="comments-heading" className="text-2xl font-bold text-heading">Comments</h2>
+      <h2 id="comments-heading" className="text-2xl font-semibold tracking-tight text-heading">Comments</h2>
 
       {user?.emailVerified ? (
         <form onSubmit={submit} className="mt-6">
@@ -65,11 +65,11 @@ function Comments({ slug }) {
             rows="4"
             value={body}
             onChange={(event) => setBody(event.target.value)}
-            className="mt-2 w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-heading outline-none focus:border-accent"
+            className="mt-2 w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm text-heading outline-none transition-colors hover:border-border-strong focus:border-heading"
           />
           <div className="mt-2 flex items-center justify-between gap-4">
             <span className="text-xs text-muted">{body.length}/2000</span>
-            <button disabled={isSubmitting || !body.trim()} className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
+            <button disabled={isSubmitting || !body.trim()} className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60">
               {isSubmitting ? 'Posting…' : 'Post comment'}
             </button>
           </div>
@@ -93,9 +93,9 @@ function Comments({ slug }) {
         <p className="mt-8 text-sm text-muted">No comments yet. Start the conversation.</p>
       )}
       {resource.status === 'ready' && resource.items.length > 0 && (
-        <ol className="mt-8 space-y-5">
+        <ol className="mt-8 border-t border-border">
           {resource.items.map((comment) => (
-            <li key={comment.id} className="rounded-xl border border-border bg-surface p-5">
+            <li key={comment.id} className="border-b border-border py-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="font-medium text-heading">{comment.authorDisplayName}</p>

@@ -10,8 +10,8 @@ function Layout() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
-        <Suspense fallback={<p className="text-muted">Loading…</p>}>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-12 sm:py-16">
+        <Suspense fallback={<p className="eyebrow text-muted">Loading…</p>}>
           <Outlet />
         </Suspense>
       </main>

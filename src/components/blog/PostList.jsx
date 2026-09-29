@@ -11,11 +11,15 @@ import PostCard from './PostCard'
 // We also handle the empty case explicitly so the UI never looks broken.
 function PostList({ posts, query = '', emptyMessage = 'No posts found.' }) {
   if (posts.length === 0) {
-    return <p className="text-muted">{emptyMessage}</p>
+    return (
+      <p className="border-b border-dashed border-border py-16 text-center text-sm text-muted">
+        {emptyMessage}
+      </p>
+    )
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col">
       {posts.map((post) => (
         <PostCard key={post.slug} post={post} query={query} />
       ))}

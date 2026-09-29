@@ -6,16 +6,16 @@
 // aria-pressed tells screen readers which toggle button is currently active.
 function TagFilter({ tags, activeTag, onSelect }) {
   const baseClass =
-    'rounded-full px-3 py-1 text-xs font-medium transition-colors'
-  const activeClass = 'bg-accent text-white'
-  const idleClass = 'bg-accent-soft text-accent hover:bg-accent hover:text-white'
+    'h-8 rounded-md border px-3 font-mono text-[11px] tracking-wide transition-colors'
+  const activeClass = 'border-heading bg-heading text-bg'
+  const idleClass = 'border-border text-muted hover:border-border-strong hover:text-heading'
 
   function buttonClass(isActive) {
     return `${baseClass} ${isActive ? activeClass : idleClass}`
   }
 
   return (
-    <div role="group" aria-label="Filter by tag" className="flex flex-wrap gap-2">
+    <div role="group" aria-label="Filter by tag" className="flex flex-wrap gap-1.5">
       <button
         type="button"
         onClick={() => onSelect(null)}

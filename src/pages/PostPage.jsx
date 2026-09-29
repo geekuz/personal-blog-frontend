@@ -57,19 +57,36 @@ function PostPage() {
   }
 
   return (
-    <article>
-      <Link to="/" className="text-sm text-muted hover:text-accent">
-        ← All posts
+    <article className="mx-auto max-w-3xl">
+      <Link
+        to="/"
+        className="eyebrow group inline-flex items-center gap-2 text-muted transition-colors hover:text-heading"
+      >
+        <span aria-hidden="true" className="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
+        All posts
       </Link>
-      <header className="mt-4 mb-8">
-        <h1 className="text-3xl font-bold text-heading sm:text-4xl">{post.title}</h1>
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+      <header className="mt-8 mb-10 border-b border-border pb-8">
+        <h1 className="text-4xl leading-[1.08] font-semibold tracking-[-0.035em] text-balance text-heading sm:text-5xl">
+          {post.title}
+        </h1>
+        {post.summary && (
+          <p className="mt-5 text-lg leading-relaxed text-muted">{post.summary}</p>
+        )}
+        <div className="eyebrow mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-muted">
           <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
-          <span aria-hidden="true">·</span>
+          <span aria-hidden="true" className="h-3 w-px bg-border-strong" />
           <span>{post.readingTimeMinutes} min read</span>
+          {post.tags?.length > 0 && (
+            <>
+              <span aria-hidden="true" className="h-3 w-px bg-border-strong" />
+              <span className="normal-case tracking-normal">
+                {post.tags.map((tag) => `#${tag}`).join('  ')}
+              </span>
+            </>
+          )}
         </div>
       </header>
-      <CoverImage src={post.coverImageUrl} alt={post.coverImageAlt} className="mb-8 aspect-video w-full rounded-xl object-cover" />
+      <CoverImage src={post.coverImageUrl} alt={post.coverImageAlt} className="mb-10 aspect-video w-full rounded-lg border border-border object-cover" />
       <MarkdownContent tableOfContents>{post.content}</MarkdownContent>
       <PostNavigation
         previousPost={post.previousPost}

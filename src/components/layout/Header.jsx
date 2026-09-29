@@ -5,23 +5,38 @@ import { useAuth } from '../../auth/useAuth'
 // NavLink is like a smart <a>: it navigates without reloading the page, AND it
 // knows when its `to` matches the current URL so we can style the active link.
 // The className prop can be a function receiving { isActive }.
+// The active link gets a hairline underline, drawn with ::after, that sits on
+// the header's bottom border.
 function navClass({ isActive }) {
+  const base =
+    'relative py-1 transition-colors after:absolute after:inset-x-0 after:-bottom-[1.1rem] after:h-px after:transition-colors'
   return isActive
-    ? 'text-accent'
-    : 'text-muted transition-colors hover:text-accent'
+    ? `${base} text-heading after:bg-heading`
+    : `${base} text-muted after:bg-transparent hover:text-heading`
 }
 
 function Header() {
   const { user, isLoading } = useAuth()
   return (
-    <header className="border-b border-border">
-      <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
-        <NavLink to="/" className="text-lg font-bold tracking-tight text-heading">
-          otabek<span className="text-accent">.dev</span>
+    <header className="sticky top-0 z-40 border-b border-border bg-bg/80 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
+        <NavLink
+          to="/"
+          className="group flex items-center gap-2.5 font-mono text-sm font-medium tracking-tight text-heading"
+        >
+          <span
+            aria-hidden="true"
+            className="grid size-5 place-items-center bg-heading text-[10px] font-semibold text-bg transition-colors group-hover:bg-accent"
+          >
+            O
+          </span>
+          <span>
+            otabek<span className="text-muted">.dev</span>
+          </span>
         </NavLink>
         <nav
           aria-label="Main navigation"
-          className="flex items-center gap-6 text-sm"
+          className="flex items-center gap-5 text-[13px] sm:gap-7"
         >
           {/* `end` makes "/" active only on the exact home path, not on /about */}
           <NavLink to="/" end className={navClass}>

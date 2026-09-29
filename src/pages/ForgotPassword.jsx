@@ -30,16 +30,16 @@ function ForgotPassword() {
 
   return (
     <section className="mx-auto max-w-md">
-      <h1 className="text-3xl font-bold text-heading">Reset your password</h1>
+      <h1 className="text-4xl font-semibold tracking-[-0.035em] text-heading">Reset your password</h1>
       <p className="mt-2 text-muted">Enter your account email. If it matches an account, we’ll send a single-use link that expires in 30 minutes.</p>
       <form onSubmit={submit} className="mt-8 space-y-5">
         <label className="block text-sm font-medium text-heading">
           Email
-          <input required name="email" type="email" autoComplete="email" maxLength="254" className="mt-2 w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-heading outline-none focus:border-accent" />
+          <input required name="email" type="email" autoComplete="email" maxLength="254" className="mt-2 w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm text-heading outline-none transition-colors hover:border-border-strong focus:border-heading" />
         </label>
         {message && <p role="status" className="text-sm text-green-700 dark:text-green-400">{message}</p>}
         {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        <button disabled={isSubmitting} className="w-full rounded-lg bg-accent px-4 py-2.5 font-medium text-white disabled:opacity-60">
+        <button disabled={isSubmitting} className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60">
           {isSubmitting ? 'Sending…' : 'Send reset link'}
         </button>
       </form>
