@@ -13,15 +13,28 @@ function getDescriptionElement() {
   return element
 }
 
-export function useDocumentMeta({ title, description } = {}) {
+function getRobotsElement() {
+  let element = document.querySelector('meta[name="robots"]')
+  if (!element) {
+    element = document.createElement('meta')
+    element.name = 'robots'
+    document.head.appendChild(element)
+  }
+  return element
+}
+
+export function useDocumentMeta({ title, description, robots = 'index,follow' } = {}) {
   useEffect(() => {
     document.title = title ?? DEFAULT_TITLE
     const descriptionElement = getDescriptionElement()
     descriptionElement.content = description ?? DEFAULT_DESCRIPTION
+    const robotsElement = getRobotsElement()
+    robotsElement.content = robots
 
     return () => {
       document.title = DEFAULT_TITLE
       descriptionElement.content = DEFAULT_DESCRIPTION
+      robotsElement.content = 'index,follow'
     }
-  }, [title, description])
+  }, [title, description, robots])
 }

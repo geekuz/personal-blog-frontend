@@ -9,6 +9,7 @@ import Comments from '../components/blog/Comments'
 import MarkdownContent from '../components/blog/MarkdownContent'
 import CoverImage from '../components/blog/CoverImage'
 import PostNavigation from '../components/blog/PostNavigation'
+import NewsletterSignup from '../components/blog/NewsletterSignup'
 
 function PostPage() {
   const { slug } = useParams()
@@ -93,6 +94,7 @@ function PostPage() {
         nextPost={post.nextPost}
         relatedPosts={post.relatedPosts}
       />
+      <NewsletterSignup compact />
       <Comments slug={slug} />
     </article>
   )

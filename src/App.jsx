@@ -11,6 +11,7 @@ const About = lazy(() => import('./pages/About'))
 const Projects = lazy(() => import('./pages/Projects'))
 const OtabekDevCaseStudy = lazy(() => import('./pages/OtabekDevCaseStudy'))
 const Contact = lazy(() => import('./pages/Contact'))
+const NewsletterAction = lazy(() => import('./pages/NewsletterAction'))
 const PostPage = lazy(() => import('./pages/PostPage'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const Login = lazy(() => import('./pages/Login'))
@@ -33,6 +34,8 @@ function App() {
         <Route path="/projects/otabek-dev" element={<OtabekDevCaseStudy />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/newsletter/confirm" element={<NewsletterAction type="confirm" />} />
+        <Route path="/newsletter/unsubscribe" element={<NewsletterAction type="unsubscribe" />} />
         <Route path="/blog/:slug" element={<PostPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

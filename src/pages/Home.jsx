@@ -7,6 +7,7 @@ import Pagination from '../components/blog/Pagination'
 import StatusMessage from '../components/ui/StatusMessage'
 import { getPosts, getTags } from '../api/posts'
 import { useDocumentMeta } from '../hooks/useDocumentMeta'
+import NewsletterSignup from '../components/blog/NewsletterSignup'
 
 const PAGE_SIZE = 6
 
@@ -163,6 +164,7 @@ function Home() {
           />
         </>
       )}
+      <NewsletterSignup />
     </>
   )
 }
