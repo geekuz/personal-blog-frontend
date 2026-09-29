@@ -1,12 +1,22 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "host", "value": "personal-blog-frontend-virid.vercel.app" }
+      ],
+      "destination": "https://otabek.dev/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/feed.xml",
-      "destination": "https://personal-blog-backend-idiq.onrender.com/feed.xml"
+      "destination": "https://api.otabek.dev/feed.xml"
     },
     {
       "source": "/sitemap.xml",
-      "destination": "https://personal-blog-backend-idiq.onrender.com/sitemap.xml"
+      "destination": "https://api.otabek.dev/sitemap.xml"
     },
     {
       "source": "/blog/:slug",
@@ -17,7 +27,7 @@
           "value": ".*(facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|Discordbot|WhatsApp|LinkedInBot|redditbot|Mastodon|Embedly|SkypeUriPreview|Pinterestbot|vkShare|Iframely|Bluesky).*"
         }
       ],
-      "destination": "https://personal-blog-backend-idiq.onrender.com/share/blog/:slug"
+      "destination": "https://api.otabek.dev/share/blog/:slug"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]

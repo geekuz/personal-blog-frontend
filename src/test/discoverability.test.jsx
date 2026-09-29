@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest'
 import vercelConfig from '../../vercel.json'
 import Footer from '../components/layout/Footer.jsx'
 
-const BACKEND = 'https://personal-blog-backend-idiq.onrender.com'
-const { rewrites } = vercelConfig
+const BACKEND = 'https://api.otabek.dev'
+const OLD_HOST = 'personal-blog-frontend-virid.vercel.app'
+const { rewrites, redirects = [] } = vercelConfig
 
 function rewriteFor(source) {
   return rewrites.find((rule) => rule.source === source)
@@ -20,6 +21,15 @@ describe('Vercel discoverability rewrites', () => {
   it('proxies the feed and sitemap to the backend on the reader-facing domain', () => {
     expect(rewriteFor('/feed.xml').destination).toBe(`${BACKEND}/feed.xml`)
     expect(rewriteFor('/sitemap.xml').destination).toBe(`${BACKEND}/sitemap.xml`)
+  })
+
+  it('permanently redirects the old vercel.app address to otabek.dev, keeping the path', () => {
+    const rule = redirects.find((r) => r.has?.some((c) => c.type === 'host' && c.value === OLD_HOST))
+    expect(rule).toMatchObject({
+      source: '/:path*',
+      destination: 'https://otabek.dev/:path*',
+      permanent: true,
+    })
   })
 
   it('keeps the SPA fallback last so it cannot shadow the proxied paths', () => {
