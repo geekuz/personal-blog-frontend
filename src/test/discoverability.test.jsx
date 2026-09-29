@@ -25,9 +25,10 @@ describe('Vercel discoverability rewrites', () => {
 
   it('permanently redirects the old vercel.app address to otabek.dev, keeping the path', () => {
     const rule = redirects.find((r) => r.has?.some((c) => c.type === 'host' && c.value === OLD_HOST))
+    // `/(.*)` also matches the bare home page; `/:path*` did not on Vercel.
     expect(rule).toMatchObject({
-      source: '/:path*',
-      destination: 'https://otabek.dev/:path*',
+      source: '/(.*)',
+      destination: 'https://otabek.dev/$1',
       permanent: true,
     })
   })

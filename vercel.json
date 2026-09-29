@@ -1,11 +1,11 @@
 {
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [
         { "type": "host", "value": "personal-blog-frontend-virid.vercel.app" }
       ],
-      "destination": "https://otabek.dev/:path*",
+      "destination": "https://otabek.dev/$1",
       "permanent": true
     }
   ],
