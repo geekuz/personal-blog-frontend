@@ -27,7 +27,55 @@ const DECISIONS = [
   {
     number: '04',
     title: 'Forward-only database evolution',
-    body: 'Flyway owns the schema and Hibernate validates it instead of modifying it. Thirteen immutable migrations record the path from basic posts to accounts, comments, newsletters, scheduled publishing and the media catalog.',
+    body: 'Flyway owns the schema and Hibernate validates it instead of modifying it. Fourteen immutable migrations record the path from basic posts to accounts, comments, newsletters, scheduled publishing and the media catalog.',
+  },
+]
+
+const DEVELOPMENT_HISTORY = [
+  {
+    date: '12 August 2026',
+    title: 'Start with the reading experience',
+    body: 'The first version was a React and Vite site with Markdown articles stored beside the frontend. It established the routes, article rendering, tags, search controls and responsive shell before a server existed.',
+  },
+  {
+    date: '13 August 2026',
+    title: 'Move content behind a Java API',
+    body: 'A Spring Boot service took ownership of posts and tags, PostgreSQL became the source of truth, and Flyway imported the original Markdown through forward-only migrations. The React app switched from bundled files to paginated API requests.',
+  },
+  {
+    date: '17–18 August 2026',
+    title: 'Build identity as a complete flow',
+    body: 'Registration and login arrived with BCrypt passwords, role-based access, JDBC-backed sessions and CSRF protection. Email verification through Resend, password recovery, single-use hashed tokens and abuse rate limits completed the account lifecycle.',
+  },
+  {
+    date: '20–21 August 2026',
+    title: 'Add reader participation and publishing control',
+    body: 'Verified readers gained newsletter preferences and comments. On the other side, the first role-gated admin dashboard made it possible to create, edit and publish articles, then track newsletter delivery without touching the database.',
+  },
+  {
+    date: '24–27 August 2026',
+    title: 'Turn the dashboard into an editorial workspace',
+    body: 'Markdown preview, cover images, automatic draft saving, scheduled publishing and image uploads were added in small increments. Each frontend change landed with its matching API and migration rather than as one large rewrite.',
+  },
+  {
+    date: '28 September 2026',
+    title: 'Harden media and discovery',
+    body: 'Uploaded files moved to Cloudflare R2 and became reusable media assets. The reading view gained code-focused polish and related navigation, while RSS, the sitemap and bot-specific social-preview pages made published work discoverable outside the app.',
+  },
+  {
+    date: '29 September 2026 · morning',
+    title: 'Improve finding and measuring content',
+    body: 'Search expanded from metadata to ranked full-text matching with highlighted snippets. The site moved to otabek.dev, gained safe analytics that exclude private routes, and kept the API boundary hidden behind stable public URLs.',
+  },
+  {
+    date: '29 September 2026 · afternoon',
+    title: 'Evolve the blog into an engineering portfolio',
+    body: 'A sharp editorial redesign established the current visual system. Projects, this case study, a responsive architecture diagram, the Contact hub and a factual downloadable résumé gave the work context beyond individual articles.',
+  },
+  {
+    date: '29 September 2026 · evening',
+    title: 'Remove friction from subscribing',
+    body: 'Newsletter signup became available without an account, but only confirmed addresses can receive mail. Hashed, short-lived confirmation and unsubscribe tokens, CSRF checks and rate limits preserve the security model introduced earlier.',
   },
 ]
 
@@ -80,6 +128,7 @@ function OtabekDevCaseStudy() {
           {[
             ['Challenge', '#challenge'],
             ['Architecture', '#architecture'],
+            ['History', '#history'],
             ['Capabilities', '#capabilities'],
             ['Decisions', '#decisions'],
             ['Delivery', '#delivery'],
@@ -122,8 +171,32 @@ function OtabekDevCaseStudy() {
         />
       </section>
 
+      <section id="history" className="scroll-mt-20 border-t border-border py-12">
+        <p className="eyebrow text-accent">03 / Development history</p>
+        <div className="mt-4 grid gap-6 sm:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] sm:gap-12">
+          <div>
+            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-heading">From files to a full publishing system</h2>
+            <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-muted">
+              A commit-backed timeline of how the product grew. The dates and sequence come from the public frontend and backend repositories.
+            </p>
+          </div>
+          <ol className="border-t border-border">
+            {DEVELOPMENT_HISTORY.map((milestone, index) => (
+              <li key={milestone.date} className="grid gap-3 border-b border-border py-7 sm:grid-cols-[4rem_minmax(0,1fr)] sm:gap-6">
+                <span className="eyebrow text-muted">{String(index + 1).padStart(2, '0')}</span>
+                <div>
+                  <time className="eyebrow text-accent">{milestone.date}</time>
+                  <h3 className="mt-2 text-lg font-semibold leading-snug text-heading">{milestone.title}</h3>
+                  <p className="mt-3 text-[15px] leading-relaxed text-muted">{milestone.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
       <section id="capabilities" className="scroll-mt-20 border-t border-border py-12">
-        <p className="eyebrow text-accent">03 / Capabilities</p>
+        <p className="eyebrow text-accent">04 / Capabilities</p>
         <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-heading">One product, four workflows</h2>
         <div className="mt-8 grid border-t border-border sm:grid-cols-2">
           {CAPABILITIES.map(([title, body], index) => (
@@ -137,7 +210,7 @@ function OtabekDevCaseStudy() {
       </section>
 
       <section id="decisions" className="scroll-mt-20 border-t border-border py-12">
-        <p className="eyebrow text-accent">04 / Decisions</p>
+        <p className="eyebrow text-accent">05 / Decisions</p>
         <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-heading">Trade-offs made explicit</h2>
         <div className="mt-8">
           {DECISIONS.map((decision) => (
@@ -151,7 +224,7 @@ function OtabekDevCaseStudy() {
       </section>
 
       <section id="delivery" className="scroll-mt-20 border-y border-border py-12">
-        <p className="eyebrow text-accent">05 / Delivery</p>
+        <p className="eyebrow text-accent">06 / Delivery</p>
         <div className="mt-5 grid gap-8 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] sm:gap-12">
           <h2 className="text-3xl font-semibold tracking-[-0.04em] text-heading">Evidence before claims</h2>
           <div>
