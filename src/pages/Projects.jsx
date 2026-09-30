@@ -38,6 +38,7 @@ const PROJECTS = [
       'A Unix-style sort command implemented in Java, with multiple hand-built sorting algorithms, standard-input support, deduplication, and a 40-test suite.',
     stack: ['Java 21', 'Algorithms', 'CLI', 'CI'],
     accent: 'Tooling / Algorithms',
+    caseStudy: '/projects/build-your-own-sort',
     links: [
       { label: 'View source', href: 'https://github.com/geekuz/BYO-sort-tool' },
     ],
