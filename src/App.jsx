@@ -10,6 +10,7 @@ const Home = lazy(() => import('./pages/Home'))
 const About = lazy(() => import('./pages/About'))
 const Projects = lazy(() => import('./pages/Projects'))
 const OtabekDevCaseStudy = lazy(() => import('./pages/OtabekDevCaseStudy'))
+const LoadBalancerCaseStudy = lazy(() => import('./pages/LoadBalancerCaseStudy'))
 const Contact = lazy(() => import('./pages/Contact'))
 const NewsletterAction = lazy(() => import('./pages/NewsletterAction'))
 const PostPage = lazy(() => import('./pages/PostPage'))
@@ -32,6 +33,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/otabek-dev" element={<OtabekDevCaseStudy />} />
+        <Route path="/projects/java-load-balancer" element={<LoadBalancerCaseStudy />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/newsletter/confirm" element={<NewsletterAction type="confirm" />} />

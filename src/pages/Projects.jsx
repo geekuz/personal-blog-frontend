@@ -25,6 +25,7 @@ const PROJECTS = [
       'A framework-free HTTP load balancer built on Java 21 sockets, with concurrent request forwarding, round-robin scheduling, and automatic health checks.',
     stack: ['Java 21', 'Sockets', 'Concurrency', 'JUnit'],
     accent: 'Infrastructure / Java',
+    caseStudy: '/projects/java-load-balancer',
     links: [
       { label: 'View source', href: 'https://github.com/geekuz/BYO-load-balancer' },
     ],
@@ -95,6 +96,7 @@ function ProjectCard({ project }) {
           {project.caseStudy && (
             <Link
               to={project.caseStudy}
+              aria-label={`Read ${project.title} case study`}
               className="group inline-flex items-center gap-2 text-sm font-medium text-accent transition-colors hover:text-heading"
             >
               Read case study

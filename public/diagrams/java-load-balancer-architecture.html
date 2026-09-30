@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Java load balancer architecture</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6f6f7;
+        --fg: #09090b;
+        --muted: #71717a;
+        --line: #71717a;
+        --input: #dbeafe;
+        --process: #e0e7ff;
+        --storage: #ccfbf1;
+        --external: #fef3c7;
+        --accent: #2a3fff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #131316;
+          --fg: #fafafa;
+          --muted: #a1a1aa;
+          --line: #71717a;
+          --input: #1e3a5f;
+          --process: #312e81;
+          --storage: #134e4a;
+          --external: #78350f;
+          --accent: #8593ff;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      main { padding: 20px; }
+      svg { width: 100%; height: auto; display: block; }
+      .mobile { display: none; }
+      .label { font-size: 15px; font-weight: 650; fill: var(--fg); }
+      .small { font-size: 12px; fill: var(--muted); }
+      .micro { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; fill: var(--muted); }
+      .node { stroke: var(--line); stroke-width: 1; }
+      .input { fill: var(--input); }
+      .process { fill: var(--process); }
+      .storage { fill: var(--storage); }
+      .external { fill: var(--external); }
+      .edge { stroke: var(--line); stroke-width: 1.5; fill: none; }
+      .health-edge { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 4; fill: none; }
+      .accent { fill: var(--accent); }
+      @media (max-width: 640px) {
+        main { padding: 12px; }
+        .desktop { display: none; }
+        .mobile { display: block; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <svg class="desktop" viewBox="0 0 960 480" role="img" aria-labelledby="desktop-title desktop-desc">
+        <title id="desktop-title">Java load balancer request and health-check architecture</title>
+        <desc id="desktop-desc">A client connects to a ServerSocket accept loop. A worker parses and forwards the request through a healthy-backend selector to one of three backend servers. A separate scheduler probes those backends and updates atomic health flags.</desc>
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path class="accent" d="M0 0 10 5 0 10Z" />
+          </marker>
+        </defs>
+
+        <path class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M150 220H195" />
+        <path class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M345 220H390" />
+        <path class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M555 220H600" />
+        <path class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M755 220H785" />
+        <path class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M755 220C775 220 765 105 785 105" />
+        <path class="edge" marker-start="url(#arrow)" marker-end="url(#arrow)" d="M755 220C775 220 765 335 785 335" />
+        <path class="health-edge" marker-end="url(#arrow)" d="M472 370C472 430 850 430 850 390" />
+        <path class="health-edge" marker-end="url(#arrow)" d="M472 370C472 410 820 410 820 278" />
+        <path class="health-edge" marker-end="url(#arrow)" d="M472 370C472 390 790 390 790 163" />
+
+        <text class="small" x="158" y="207">TCP</text>
+        <text class="small" x="762" y="207">selected</text>
+        <text class="small" x="620" y="447">timed HTTP probes + atomic health updates</text>
+
+        <rect class="node external" x="20" y="170" width="130" height="100" />
+        <text class="micro" x="42" y="198">Client</text>
+        <text class="label" x="42" y="228">HTTP request</text>
+        <text class="small" x="42" y="250">response bytes</text>
+
+        <rect class="node input" x="195" y="160" width="150" height="120" />
+        <text class="micro" x="217" y="190">Main thread</text>
+        <text class="label" x="217" y="220">ServerSocket</text>
+        <text class="small" x="217" y="243">accept + dispatch</text>
+        <text class="small" x="217" y="263">cached workers</text>
+
+        <rect class="node process" x="390" y="145" width="165" height="150" />
+        <text class="micro" x="412" y="175">Worker thread</text>
+        <text class="label" x="412" y="207">ConnectionHandler</text>
+        <text class="small" x="412" y="232">parse + rewrite</text>
+        <text class="small" x="412" y="252">forward + relay</text>
+        <text class="small" x="412" y="272">502 on connect failure</text>
+
+        <rect class="node process" x="600" y="155" width="155" height="130" />
+        <text class="micro" x="622" y="185">Shared state</text>
+        <text class="label" x="622" y="217">BackendPool</text>
+        <text class="small" x="622" y="242">healthy subset</text>
+        <text class="small" x="622" y="262">atomic cursor</text>
+
+        <rect class="node storage" x="785" y="55" width="150" height="100" />
+        <text class="micro" x="807" y="83">Backend A</text>
+        <text class="label" x="807" y="113">HTTP server</text>
+        <text class="small" x="807" y="135">atomic health flag</text>
+
+        <rect class="node storage" x="785" y="170" width="150" height="100" />
+        <text class="micro" x="807" y="198">Backend B</text>
+        <text class="label" x="807" y="228">HTTP server</text>
+        <text class="small" x="807" y="250">atomic health flag</text>
+
+        <rect class="node storage" x="785" y="285" width="150" height="100" />
+        <text class="micro" x="807" y="313">Backend C</text>
+        <text class="label" x="807" y="343">HTTP server</text>
+        <text class="small" x="807" y="365">atomic health flag</text>
+
+        <rect class="node external" x="390" y="330" width="165" height="90" />
+        <text class="micro" x="412" y="358">Scheduler thread</text>
+        <text class="label" x="412" y="387">HealthChecker</text>
+        <text class="small" x="412" y="407">2xx / 3xx = healthy</text>
+      </svg>
+
+      <svg class="mobile" viewBox="0 0 420 720" role="img" aria-labelledby="mobile-title mobile-desc">
+        <title id="mobile-title">Java load balancer request and health-check architecture</title>
+        <desc id="mobile-desc">A client request passes through the listener, a worker and the backend pool before reaching a backend. A separate health checker updates backend eligibility.</desc>
+        <defs>
+          <marker id="arrow-mobile" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path class="accent" d="M0 0 10 5 0 10Z" />
+          </marker>
+        </defs>
+
+        <path class="edge" marker-start="url(#arrow-mobile)" marker-end="url(#arrow-mobile)" d="M210 90V120" />
+        <path class="edge" marker-start="url(#arrow-mobile)" marker-end="url(#arrow-mobile)" d="M210 200V230" />
+        <path class="edge" marker-start="url(#arrow-mobile)" marker-end="url(#arrow-mobile)" d="M210 320V350" />
+        <path class="edge" marker-start="url(#arrow-mobile)" marker-end="url(#arrow-mobile)" d="M210 440V480" />
+        <path class="health-edge" marker-end="url(#arrow-mobile)" d="M210 675V630H80V580" />
+        <path class="health-edge" marker-end="url(#arrow-mobile)" d="M210 675V580" />
+        <path class="health-edge" marker-end="url(#arrow-mobile)" d="M210 630H340V580" />
+
+        <rect class="node external" x="55" y="20" width="310" height="70" />
+        <text class="micro" x="78" y="47">Client</text>
+        <text class="label" x="78" y="72">HTTP request ↔ response</text>
+
+        <rect class="node input" x="55" y="120" width="310" height="80" />
+        <text class="micro" x="78" y="148">Main thread</text>
+        <text class="label" x="78" y="175">ServerSocket accept + dispatch</text>
+
+        <rect class="node process" x="55" y="230" width="310" height="90" />
+        <text class="micro" x="78" y="258">Worker thread</text>
+        <text class="label" x="78" y="285">Parse, rewrite, forward and relay</text>
+        <text class="small" x="78" y="306">one ConnectionHandler per client</text>
+
+        <rect class="node process" x="55" y="350" width="310" height="90" />
+        <text class="micro" x="78" y="378">BackendPool</text>
+        <text class="label" x="78" y="405">Healthy-subset round-robin</text>
+        <text class="small" x="78" y="426">atomic cursor + health flags</text>
+
+        <rect class="node storage" x="15" y="480" width="125" height="100" />
+        <text class="micro" x="32" y="508">Backend A</text>
+        <text class="label" x="32" y="538">HTTP server</text>
+        <text class="small" x="32" y="560">health flag</text>
+
+        <rect class="node storage" x="148" y="480" width="125" height="100" />
+        <text class="micro" x="165" y="508">Backend B</text>
+        <text class="label" x="165" y="538">HTTP server</text>
+        <text class="small" x="165" y="560">health flag</text>
+
+        <rect class="node storage" x="281" y="480" width="125" height="100" />
+        <text class="micro" x="298" y="508">Backend C</text>
+        <text class="label" x="298" y="538">HTTP server</text>
+        <text class="small" x="298" y="560">health flag</text>
+
+        <rect class="node external" x="55" y="635" width="310" height="70" />
+        <text class="micro" x="78" y="662">Scheduler thread</text>
+        <text class="label" x="78" y="687">HealthChecker probes + updates</text>
+      </svg>
+    </main>
+  </body>
+</html>
