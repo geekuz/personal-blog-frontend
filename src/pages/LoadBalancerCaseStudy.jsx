@@ -1,4 +1,5 @@
 import CaseStudyLayout from '../components/projects/CaseStudyLayout'
+import LoadBalancerPlayground from '../components/projects/LoadBalancerPlayground'
 import { useDocumentMeta } from '../hooks/useDocumentMeta'
 
 const BUILD_STEPS = [
@@ -77,6 +78,7 @@ function LoadBalancerCaseStudy() {
         ['Architecture', '#architecture'],
         ['Build path', '#build-path'],
         ['Algorithm', '#algorithm'],
+        ['Playground', '#playground'],
         ['Decisions', '#decisions'],
         ['Evidence', '#evidence'],
       ]}
@@ -164,8 +166,17 @@ function LoadBalancerCaseStudy() {
         </div>
       </section>
 
+      <section id="playground" className="scroll-mt-20 border-t border-border py-12">
+        <p className="eyebrow text-accent">05 / Playground</p>
+        <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-heading">Put the selection rule under pressure</h2>
+        <p className="mt-5 max-w-2xl text-[16px] leading-relaxed text-muted">
+          Send traffic, remove backends from service and watch the cursor continue across the currently healthy subset. Taking every backend down produces the same 503 outcome as the Java implementation.
+        </p>
+        <LoadBalancerPlayground />
+      </section>
+
       <section id="decisions" className="scroll-mt-20 border-t border-border py-12">
-        <p className="eyebrow text-accent">05 / Decisions</p>
+        <p className="eyebrow text-accent">06 / Decisions</p>
         <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-heading">Clarity over hidden capability</h2>
         <div className="mt-8">
           {DECISIONS.map((decision, index) => (
@@ -179,7 +190,7 @@ function LoadBalancerCaseStudy() {
       </section>
 
       <section id="evidence" className="scroll-mt-20 border-y border-border py-12">
-        <p className="eyebrow text-accent">06 / Evidence</p>
+        <p className="eyebrow text-accent">07 / Evidence</p>
         <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-heading">What the repository actually proves</h2>
         <div className="mt-8 grid border-t border-border sm:grid-cols-2">
           {EVIDENCE.map(([title, body]) => (

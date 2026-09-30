@@ -13,7 +13,9 @@ describe('LoadBalancerCaseStudy', () => {
       '/diagrams/java-load-balancer-architecture.html',
     )
     expect(screen.getByRole('link', { name: 'Build path' })).toHaveAttribute('href', '#build-path')
+    expect(screen.getByRole('link', { name: 'Playground' })).toHaveAttribute('href', '#playground')
     expect(screen.getByRole('heading', { name: 'Fairness after a backend fails' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Put the selection rule under pressure' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '26 tests' })).toBeInTheDocument()
     expect(screen.getByText(/does not contain a repeatable throughput benchmark/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Source code/i })).toHaveAttribute(
