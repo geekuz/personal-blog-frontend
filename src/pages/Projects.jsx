@@ -51,6 +51,7 @@ const PROJECTS = [
       'A command-line file compressor and decompressor built around Huffman coding, including frequency analysis, binary round trips, and test coverage.',
     stack: ['Java 21', 'Huffman coding', 'CLI', 'Maven'],
     accent: 'Compression / Java',
+    caseStudy: '/projects/huffman-compression',
     links: [
       { label: 'View source', href: 'https://github.com/geekuz/BYO-compression-tool' },
     ],

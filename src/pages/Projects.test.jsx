@@ -10,7 +10,7 @@ describe('Projects', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Projects' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'otabek.dev' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Java HTTP Load Balancer' })).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: /case study/i })).toHaveLength(3)
+    expect(screen.getAllByRole('link', { name: /case study/i })).toHaveLength(4)
     expect(screen.getByRole('link', { name: 'Read otabek.dev case study' })).toHaveAttribute(
       'href',
       '/projects/otabek-dev',
@@ -22,6 +22,10 @@ describe('Projects', () => {
     expect(screen.getByRole('link', { name: 'Read Build Your Own Sort case study' })).toHaveAttribute(
       'href',
       '/projects/build-your-own-sort',
+    )
+    expect(screen.getByRole('link', { name: 'Read Huffman Compression Tool case study' })).toHaveAttribute(
+      'href',
+      '/projects/huffman-compression',
     )
     expect(screen.getByRole('link', { name: /Visit site/i })).toHaveAttribute('href', 'https://otabek.dev')
     expect(screen.getAllByRole('link', { name: /View source/i })).toHaveLength(3)

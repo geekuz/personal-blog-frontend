@@ -12,6 +12,7 @@ const Projects = lazy(() => import('./pages/Projects'))
 const OtabekDevCaseStudy = lazy(() => import('./pages/OtabekDevCaseStudy'))
 const LoadBalancerCaseStudy = lazy(() => import('./pages/LoadBalancerCaseStudy'))
 const SortToolCaseStudy = lazy(() => import('./pages/SortToolCaseStudy'))
+const HuffmanCaseStudy = lazy(() => import('./pages/HuffmanCaseStudy'))
 const Contact = lazy(() => import('./pages/Contact'))
 const NewsletterAction = lazy(() => import('./pages/NewsletterAction'))
 const PostPage = lazy(() => import('./pages/PostPage'))
@@ -36,6 +37,7 @@ function App() {
         <Route path="/projects/otabek-dev" element={<OtabekDevCaseStudy />} />
         <Route path="/projects/java-load-balancer" element={<LoadBalancerCaseStudy />} />
         <Route path="/projects/build-your-own-sort" element={<SortToolCaseStudy />} />
+        <Route path="/projects/huffman-compression" element={<HuffmanCaseStudy />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/newsletter/confirm" element={<NewsletterAction type="confirm" />} />

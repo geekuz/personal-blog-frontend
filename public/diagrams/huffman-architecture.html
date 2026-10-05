@@ -1,0 +1,196 @@
+<!doctype html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Huffman compression tool architecture</title>
+<link rel="icon" href="/favicon.svg" />
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #fafafa;
+    --fg: #111827;
+    --muted: #667085;
+    --line: #98a2b3;
+    --neutral: #f2f4f7;
+    --input: #dbeafe;
+    --process: #e0e7ff;
+    --storage: #d1fae5;
+    --external: #fef3c7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111318;
+      --fg: #f5f7fa;
+      --muted: #a8b0bd;
+      --line: #667085;
+      --neutral: #252932;
+      --input: #1e3a5f;
+      --process: #30356b;
+      --storage: #164e3c;
+      --external: #644915;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  main { max-width: 980px; margin: 0 auto; padding: 24px; }
+  svg { width: 100%; height: auto; display: block; }
+  .mobile { display: none; }
+  .title { font-size: 20px; font-weight: 700; fill: var(--fg); }
+  .label { font-size: 14px; font-weight: 700; fill: var(--fg); }
+  .small { font-size: 12px; fill: var(--muted); }
+  .node { stroke: var(--line); stroke-width: 1; }
+  .neutral { fill: var(--neutral); }
+  .input { fill: var(--input); }
+  .process { fill: var(--process); }
+  .storage { fill: var(--storage); }
+  .external { fill: var(--external); }
+  .edge { stroke: var(--line); stroke-width: 1.5; fill: none; }
+  .invariant { stroke: var(--line); stroke-width: 1.25; stroke-dasharray: 6 5; fill: none; }
+  @media (max-width: 620px) {
+    main { padding: 18px; }
+    .desktop { display: none; }
+    .mobile { display: block; }
+  }
+</style>
+<main>
+  <svg class="desktop" viewBox="0 0 920 470" role="img" aria-labelledby="desktop-title desktop-desc">
+    <title id="desktop-title">Huffman compression tool architecture</title>
+    <desc id="desktop-desc">Encoding counts character frequencies, builds a deterministic Huffman tree, derives prefix codes and writes a HUF1 file of frequency header plus packed bits. Decoding reads the header, rebuilds the identical tree and walks the bitstream back to text.</desc>
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--line)" /></marker>
+    </defs>
+
+    <text x="0" y="25" class="title">Store the frequencies, rebuild the tree</text>
+    <text x="0" y="48" class="small">The file carries no tree and no codes; both sides derive them with the same deterministic algorithm.</text>
+
+    <path class="edge" marker-end="url(#arrow)" d="M150 130 H200" />
+    <path class="edge" marker-end="url(#arrow)" d="M340 130 H390" />
+    <path class="edge" marker-end="url(#arrow)" d="M530 130 H580" />
+    <path class="edge" marker-end="url(#arrow)" d="M720 130 H770" />
+    <path class="edge" marker-end="url(#arrow)" d="M840 172 V230" />
+    <path class="edge" marker-end="url(#arrow)" d="M840 312 V370" />
+    <path class="edge" marker-end="url(#arrow)" d="M770 410 H720" />
+    <path class="edge" marker-end="url(#arrow)" d="M580 410 H530" />
+    <path class="edge" marker-end="url(#arrow)" d="M390 410 H340" />
+    <path class="invariant" d="M460 172 V271 H650 V370" />
+
+    <text x="0" y="82" class="small">ENCODE</text>
+    <rect x="10" y="90" width="140" height="82" rx="2" class="node input" />
+    <text x="26" y="122" class="label">Input text</text>
+    <text x="26" y="144" class="small">UTF-8 file</text>
+
+    <rect x="200" y="90" width="140" height="82" rx="2" class="node process" />
+    <text x="216" y="122" class="label">Frequency</text>
+    <text x="216" y="141" class="label">Counter</text>
+    <text x="216" y="161" class="small">pass 1 · char counts</text>
+
+    <rect x="390" y="90" width="140" height="82" rx="2" class="node storage" />
+    <text x="406" y="122" class="label">HuffmanTree</text>
+    <text x="406" y="144" class="small">merge two lowest</text>
+    <text x="406" y="161" class="small">tie → smallest char</text>
+
+    <rect x="580" y="90" width="140" height="82" rx="2" class="node process" />
+    <text x="596" y="122" class="label">CodeTable</text>
+    <text x="596" y="144" class="small">left 0 · right 1</text>
+    <text x="596" y="161" class="small">prefix-free codes</text>
+
+    <rect x="770" y="90" width="140" height="82" rx="2" class="node process" />
+    <text x="786" y="122" class="label">Encoder</text>
+    <text x="786" y="144" class="small">pass 2 · emit codes</text>
+    <text x="786" y="161" class="small">BitOutputStream</text>
+
+    <rect x="680" y="230" width="230" height="82" rx="2" class="node external" />
+    <text x="696" y="262" class="label">HUF1 file</text>
+    <text x="696" y="284" class="small">magic · N · (char, long) × N</text>
+    <text x="696" y="301" class="small">packed bits, MSB-first</text>
+
+    <text x="200" y="250" class="label">Invariant</text>
+    <text x="200" y="272" class="small">same frequency table →</text>
+    <text x="200" y="290" class="small">byte-for-byte identical tree</text>
+
+    <text x="0" y="362" class="small">DECODE</text>
+    <rect x="770" y="370" width="140" height="82" rx="2" class="node process" />
+    <text x="786" y="402" class="label">Header.read</text>
+    <text x="786" y="424" class="small">validate magic</text>
+    <text x="786" y="441" class="small">total = Σ freq</text>
+
+    <rect x="580" y="370" width="140" height="82" rx="2" class="node storage" />
+    <text x="596" y="402" class="label">HuffmanTree</text>
+    <text x="596" y="424" class="small">same algorithm</text>
+    <text x="596" y="441" class="small">same tie-break</text>
+
+    <rect x="390" y="370" width="140" height="82" rx="2" class="node process" />
+    <text x="406" y="402" class="label">Decoder walk</text>
+    <text x="406" y="424" class="small">BitInputStream</text>
+    <text x="406" y="441" class="small">stop after total</text>
+
+    <rect x="200" y="370" width="140" height="82" rx="2" class="node input" />
+    <text x="216" y="402" class="label">Output text</text>
+    <text x="216" y="424" class="small">identical to input</text>
+  </svg>
+
+  <svg class="mobile" viewBox="0 0 360 960" role="img" aria-labelledby="mobile-title mobile-desc">
+    <title id="mobile-title">Huffman compression tool architecture</title>
+    <desc id="mobile-desc">Input text flows through frequency counting, tree building, code assignment and encoding into a HUF1 file; decoding reads the header, rebuilds the same tree and walks the bits back to identical text.</desc>
+    <defs>
+      <marker id="arrow-mobile" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--line)" /></marker>
+    </defs>
+
+    <text x="0" y="24" class="title">Huffman round trip</text>
+    <text x="0" y="47" class="small">Frequencies in the file, tree rebuilt on read</text>
+
+    <path class="edge" marker-end="url(#arrow-mobile)" d="M180 135 V161" />
+    <path class="edge" marker-end="url(#arrow-mobile)" d="M180 221 V247" />
+    <path class="edge" marker-end="url(#arrow-mobile)" d="M180 307 V333" />
+    <path class="edge" marker-end="url(#arrow-mobile)" d="M180 393 V419" />
+    <path class="edge" marker-end="url(#arrow-mobile)" d="M180 479 V505" />
+    <path class="edge" marker-end="url(#arrow-mobile)" d="M180 565 V591" />
+    <path class="edge" marker-end="url(#arrow-mobile)" d="M180 651 V677" />
+    <path class="edge" marker-end="url(#arrow-mobile)" d="M180 737 V763" />
+    <path class="edge" marker-end="url(#arrow-mobile)" d="M180 823 V849" />
+
+    <rect x="20" y="75" width="320" height="60" rx="2" class="node input" />
+    <text x="40" y="101" class="label">Input text</text>
+    <text x="40" y="121" class="small">UTF-8 file</text>
+
+    <rect x="20" y="161" width="320" height="60" rx="2" class="node process" />
+    <text x="40" y="187" class="label">FrequencyCounter</text>
+    <text x="40" y="207" class="small">pass 1 · count each char</text>
+
+    <rect x="20" y="247" width="320" height="60" rx="2" class="node storage" />
+    <text x="40" y="273" class="label">HuffmanTree</text>
+    <text x="40" y="293" class="small">merge two lowest · tie → smallest char</text>
+
+    <rect x="20" y="333" width="320" height="60" rx="2" class="node process" />
+    <text x="40" y="359" class="label">CodeTable</text>
+    <text x="40" y="379" class="small">left 0 · right 1 · prefix-free</text>
+
+    <rect x="20" y="419" width="320" height="60" rx="2" class="node process" />
+    <text x="40" y="445" class="label">Encoder</text>
+    <text x="40" y="465" class="small">pass 2 · BitOutputStream</text>
+
+    <rect x="20" y="505" width="320" height="60" rx="2" class="node external" />
+    <text x="40" y="531" class="label">HUF1 file</text>
+    <text x="40" y="551" class="small">magic · N · (char, long) × N · bits</text>
+
+    <rect x="20" y="591" width="320" height="60" rx="2" class="node process" />
+    <text x="40" y="617" class="label">Header.read</text>
+    <text x="40" y="637" class="small">validate magic · total = Σ freq</text>
+
+    <rect x="20" y="677" width="320" height="60" rx="2" class="node storage" />
+    <text x="40" y="703" class="label">HuffmanTree (rebuilt)</text>
+    <text x="40" y="723" class="small">same table → identical tree</text>
+
+    <rect x="20" y="763" width="320" height="60" rx="2" class="node process" />
+    <text x="40" y="789" class="label">Decoder walk</text>
+    <text x="40" y="809" class="small">BitInputStream · stop after total</text>
+
+    <rect x="20" y="849" width="320" height="60" rx="2" class="node input" />
+    <text x="40" y="875" class="label">Output text</text>
+    <text x="40" y="895" class="small">identical to the input</text>
+  </svg>
+</main>
