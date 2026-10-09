@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import NotFound from './NotFound'
 import StatusMessage from '../components/ui/StatusMessage'
@@ -10,6 +10,9 @@ import MarkdownContent from '../components/blog/MarkdownContent'
 import CoverImage from '../components/blog/CoverImage'
 import PostNavigation from '../components/blog/PostNavigation'
 import NewsletterSignup from '../components/blog/NewsletterSignup'
+
+const DynamicProgrammingLab = lazy(() => import('../components/blog/DynamicProgrammingLab'))
+const DYNAMIC_PROGRAMMING_SLUG = 'dynamic-programming-without-the-mystery'
 
 function PostPage() {
   const { slug } = useParams()
@@ -89,6 +92,11 @@ function PostPage() {
       </header>
       <CoverImage src={post.coverImageUrl} alt={post.coverImageAlt} className="mb-10 aspect-video w-full rounded-lg border border-border object-cover" />
       <MarkdownContent tableOfContents>{post.content}</MarkdownContent>
+      {slug === DYNAMIC_PROGRAMMING_SLUG && (
+        <Suspense fallback={<div className="mt-8 rounded-xl border border-border p-6 text-muted">Loading the interactive workbench…</div>}>
+          <DynamicProgrammingLab />
+        </Suspense>
+      )}
       <PostNavigation
         previousPost={post.previousPost}
         nextPost={post.nextPost}
